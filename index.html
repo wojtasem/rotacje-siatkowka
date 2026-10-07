@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D5C9B">
+<title>Rotacje w siatkówce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: na telefonie boisko na całą szerokość z wynikiem nałożonym na boisko, sterowanie pod kciukiem; na desktopie boisko + panel obok */
+:root {
+  --bg: #EEF2F6;
+  --surface: #FFFFFF;
+  --ink: #13202C;
+  --muted: #5A6875;
+  --line: #D3DBE3;
+  --accent: #1D5C9B;
+  --accent-ink: #FFFFFF;
+  --court: #E2874D;
+  --court-far: #D9A07B;
+  --free: #2B679C;
+  --free-far: #5D88AE;
+  --ok: #138A4C;
+  --ok-soft: #DDF3E6;
+  --bad: #CC1F36;
+  --bad-soft: #FBE1E5;
+  --neutral-soft: #E3ECF5;
+  --casing: rgba(255,255,255,.92);
+  --pill-bg: rgba(255,255,255,.95);
+  --f-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D141B; --surface: #151F29; --ink: #E5ECF2; --muted: #93A2B0; --line: #283745;
+    --accent: #6EA8E3; --accent-ink: #0D141B;
+    --court: #A9592B; --court-far: #6E4930; --free: #1B3D5D; --free-far: #1A2E42;
+    --ok: #3FD58A; --ok-soft: #12321F; --bad: #FF5C70; --bad-soft: #3A1820; --neutral-soft: #1B2B3B;
+    --casing: rgba(10,16,22,.85); --pill-bg: rgba(21,31,41,.95);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D141B; --surface: #151F29; --ink: #E5ECF2; --muted: #93A2B0; --line: #283745;
+  --accent: #6EA8E3; --accent-ink: #0D141B;
+  --court: #A9592B; --court-far: #6E4930; --free: #1B3D5D; --free-far: #1A2E42;
+  --ok: #3FD58A; --ok-soft: #12321F; --bad: #FF5C70; --bad-soft: #3A1820; --neutral-soft: #1B2B3B;
+  --casing: rgba(10,16,22,.85); --pill-bg: rgba(21,31,41,.95);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; -webkit-text-size-adjust: 100%; }
+button, input, summary { touch-action: manipulation; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 40px; }
+
+.top { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: end; justify-content: space-between; margin-bottom: 14px; }
+.eyebrow { margin: 0 0 2px; font-family: var(--f-display); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; font-size: 13px; color: var(--accent); }
+h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 44px); line-height: 1; text-wrap: balance; }
+.lede { margin: 0; max-width: 56ch; color: var(--muted); font-size: 14px; }
+
+.app { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 980px) { .app { grid-template-columns: minmax(0, 1.3fr) minmax(320px, 1fr); align-items: start; gap: 20px; } }
+
+.board { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: end; }
+.ctrl-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.ctrl-label { font-family: var(--f-display); font-weight: 600; font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.rot { display: flex; align-items: center; gap: 2px; }
+.rot .sep { color: var(--muted); font-size: 11px; }
+.rot button, .seg button {
+  font-family: var(--f-display); font-weight: 700; font-size: 19px; line-height: 1;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 9px; cursor: pointer; min-height: 42px;
+}
+.rot button { width: 42px; }
+.rot button[aria-pressed="true"], .seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.seg { display: flex; }
+.seg button { flex: 1; font-size: 17px; padding-inline: 14px; border-radius: 0; }
+.seg button:first-child { border-radius: 9px 0 0 9px; }
+.seg button:last-child { border-radius: 0 9px 9px 0; border-left: 0; }
+button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.court-frame { position: relative; border-radius: 12px; overflow: hidden; background: var(--free); }
+#court { display: block; width: 100%; height: auto; max-width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#court.compact .w, #court:not(.compact) .c { display: none; }
+
+.pill {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  max-width: calc(100% - 16px); width: max-content;
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px 6px 6px; border-radius: 999px;
+  background: var(--pill-bg); color: var(--ink); font-size: 13.5px; line-height: 1.25;
+  box-shadow: 0 2px 10px rgba(0,0,0,.18); pointer-events: none; border: 2px solid transparent;
+}
+.pill .d { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font: 700 14px/1 var(--f-body); color: #fff; }
+.pill.ok { border-color: var(--ok); } .pill.ok .d { background: var(--ok); }
+.pill.bad { border-color: var(--bad); } .pill.bad .d { background: var(--bad); }
+.pill.play { border-color: var(--accent); } .pill.play .d { background: var(--accent); color: var(--accent-ink); }
+.pill b { font-weight: 600; }
+.pill .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.actions { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  font: 600 14px/1.1 var(--f-body); padding: 10px 12px; min-height: 44px;
+  border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; text-align: center;
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn .k { font-family: var(--f-display); font-size: 17px; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+
+.chip { display: inline-grid; place-items: center; min-width: 26px; height: 22px; padding-inline: 5px; border-radius: 11px; font: 700 13px/1 var(--f-display); letter-spacing: .02em; border: 1.5px solid rgba(0,0,0,.35); vertical-align: middle; font-style: normal; }
+.k-s { background: #FFD23F; color: #1E1A05; }
+.k-oh { background: #2EC4B6; color: #04211E; }
+.k-mb { background: #9D8CFF; color: #150E3A; }
+.k-opp { background: #FF7AA2; color: #3A0716; }
+.k-l { background: #F7F7F2; color: #111; }
+
+.panel { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.card h2 { margin: 0 0 10px; font-family: var(--f-display); font-weight: 700; font-size: 18px; letter-spacing: .03em; text-transform: uppercase; }
+
+.status { border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center; border: 1px solid transparent; }
+.status .mark { grid-row: span 2; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font: 700 22px/1 var(--f-display); color: #fff; }
+.status strong { font-family: var(--f-display); font-size: 23px; line-height: 1.05; }
+.status p { margin: 0; color: var(--muted); font-size: 14px; }
+.status.ok { background: var(--ok-soft); border-color: var(--ok); } .status.ok .mark { background: var(--ok); }
+.status.bad { background: var(--bad-soft); border-color: var(--bad); } .status.bad .mark { background: var(--bad); }
+.status.play { background: var(--neutral-soft); border-color: var(--accent); } .status.play .mark { background: var(--accent); color: var(--accent-ink); }
+
+.rels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.rels li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 7px 8px; border-radius: 8px; font-size: 14px; }
+.rels li[data-i] { cursor: pointer; }
+.rels li[data-i]:hover, .rels li.hl { background: var(--neutral-soft); }
+.rels .ic { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 700 12px/1 var(--f-body); color: #fff; }
+.rels .ok .ic { background: var(--ok); }
+.rels .bad .ic { background: var(--bad); }
+.rels .skip .ic { background: var(--line); color: var(--muted); }
+.rels .skip { color: var(--muted); }
+.rels .m { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); text-align: right; }
+.rels .bad .m { color: var(--bad); font-weight: 600; }
+.group-h { font-family: var(--f-display); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 10px 0 2px; }
+.group-h:first-child { margin-top: 0; }
+
+.sel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.sel-head .chip { height: 30px; min-width: 38px; border-radius: 15px; font-size: 17px; }
+.sel-head b { font-family: var(--f-display); font-size: 20px; font-weight: 700; }
+.sel-head small { display: block; color: var(--muted); font-size: 13px; }
+.sel p { margin: 8px 0 0; font-size: 14px; }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+.opts label { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; font-size: 14.5px; cursor: pointer; }
+.opts input { margin-top: 2px; accent-color: var(--accent); width: 20px; height: 20px; flex: none; }
+.opts small { display: block; color: var(--muted); font-size: 12.5px; }
+.opts .btn { margin-top: 6px; width: 100%; }
+
+.rules summary { cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: 18px; letter-spacing: .03em; text-transform: uppercase; min-height: 28px; }
+.rules ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
+.rules .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+
+/* telefon */
+@media (max-width: 640px) {
+  .wrap { padding-block: 10px 32px; }
+  .top { margin-bottom: 10px; }
+  .eyebrow { font-size: 11.5px; }
+  h1 { font-size: 28px; }
+  .lede { font-size: 13.5px; }
+  .controls { flex-direction: column; align-items: stretch; gap: 8px; }
+  .rot { justify-content: space-between; }
+  .rot button { width: auto; flex: 1; min-width: 0; }
+  .court-frame { margin-inline: -8px; border-radius: 10px; }
+  .legend { font-size: 12.5px; }
+  .actions { grid-template-columns: 1fr 1fr; }
+  .actions .wide { grid-column: 1 / -1; }
+}
+
+/* SVG */
+.tk { cursor: grab; }
+.tk text { font-family: var(--f-display); font-weight: 700; pointer-events: none; }
+.zone-num { font-family: var(--f-display); font-weight: 700; fill: #fff; opacity: .2; pointer-events: none; }
+.court-label { font-family: var(--f-display); font-weight: 600; fill: #fff; opacity: .75; pointer-events: none; }
+.mlabel { font-family: var(--f-body); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">Siatkówka · przepis 7.4 FIVB</p>
+      <h1>Rotacje w siatkówce</h1>
+    </div>
+    <p class="lede">Przeciągnij zawodnika palcem lub myszą. Od razu zobaczysz, czy w chwili zagrywki stoi prawidłowo względem sąsiadów, czy to już błąd ustawienia.</p>
+  </header>
+
+  <main class="app">
+    <section class="board" aria-label="Boisko">
+      <div class="controls">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Ustawienie · strefa rozgrywającego</span>
+          <div class="rot" id="rot"></div>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Moment</span>
+          <div class="seg" id="phase">
+            <button type="button" id="ph-recv" data-p="recv">Przyjęcie</button>
+            <button type="button" id="ph-serve" data-p="serve">Nasza zagrywka</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="court-frame">
+        <svg id="court" viewBox="-3 -1.6 15 14" tabindex="0" role="application" aria-label="Boisko siatkarskie, połowa naszej drużyny, siatka na górze. Klawisze 1–6 wybierają zawodnika w strefie, strzałki go przesuwają.">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" style="fill:#fff"></path>
+            </marker>
+          </defs>
+          <g id="static"></g>
+          <g id="dyn"></g>
+        </svg>
+        <div class="pill" id="pill"></div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="next"><span class="k">↻</span> Następne przejście</button>
+        <button type="button" class="btn" id="prev"><span class="k">↺</span> Poprzednie przejście</button>
+        <button type="button" class="btn" id="undo" disabled><span class="k">⟲</span> Cofnij ruch</button>
+        <button type="button" class="btn" id="play"><span class="k">▶</span> Zagraj piłkę</button>
+        <button type="button" class="btn" id="preset">Wzorcowe ustawienie</button>
+        <button type="button" class="btn" id="base">Ustaw w strefach</button>
+      </div>
+
+      <div class="legend">
+        <span><i class="chip k-s">R</i> rozgrywający</span>
+        <span><i class="chip k-oh">P</i> przyjmujący</span>
+        <span><i class="chip k-mb">Ś</i> środkowy</span>
+        <span><i class="chip k-opp">A</i> atakujący</span>
+        <span><i class="chip k-l">L</i> libero</span>
+        <span>cyfra przy zawodniku = jego strefa</span>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div class="card sel" id="sel"></div>
+      <div class="card">
+        <h2>Zależności w tym ustawieniu</h2>
+        <div id="rels"></div>
+      </div>
+      <div class="card opts">
+        <h2>Opcje</h2>
+        <label><input type="checkbox" id="opt-lib" checked> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
+        <label><input type="checkbox" id="opt-zones" checked> <span>Numery stref na boisku</span></label>
+        <label><input type="checkbox" id="opt-arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
+        <button type="button" class="btn" id="reset-all">Przywróć wszystkie ustawienia wzorcowe</button>
+      </div>
+      <details class="card rules" id="rules" open>
+        <summary>Zasady ustawienia</summary>
+        <ol>
+          <li>Liczy się tylko chwila uderzenia piłki przez zagrywającego. Po uderzeniu każdy może stanąć gdziekolwiek.</li>
+          <li>Każdy zawodnik pierwszej linii stoi bliżej siatki niż jego odpowiednik z drugiej linii: 4 przed 5, 3 przed 6, 2 przed 1.</li>
+          <li>W każdej linii zawodnik z boku stoi bliżej swojej linii bocznej niż środkowy: 4 na lewo od 3, 3 na lewo od 2, 5 na lewo od 6, 6 na lewo od 1.</li>
+          <li>Pary po skosie (np. 4 i 1, 2 i 6, 4 i 6) oraz 4 i 2 nie mają żadnej bezpośredniej zależności.</li>
+          <li>Wszyscy poza zagrywającym muszą być na swoim boisku. Linie należą do boiska.</li>
+          <li>Zagrywający nie podlega tym zasadom. Musi stać w strefie zagrywki, za linią końcową, i nie może jej dotykać.</li>
+        </ol>
+        <p class="note">O pozycji decydują stopy na podłożu: część stopy jednego zawodnika musi być bliżej siatki lub linii bocznej niż obie stopy drugiego. W aplikacji punktem odniesienia jest środek znacznika, więc przy różnicy kilku centymetrów decyduje rzeczywiste ustawienie stóp.</p>
+      </details>
+    </aside>
+  </main>
+</div>
+
+<script>
+(function () {
+  const ZSEQ = [1, 6, 5, 4, 3, 2];                       // kolejność przejść zgodnie z ruchem wskazówek zegara
+  const ORDER = ["S", "MB2", "OH2", "OPP", "MB1", "OH1"]; // zawodnicy w strefach 1,6,5,4,3,2 w ustawieniu 1
+  const ROLES = {
+    S:   { abbr: "R",  name: "Rozgrywający",  kind: "s" },
+    OH1: { abbr: "P1", name: "Przyjmujący 1", kind: "oh" },
+    OH2: { abbr: "P2", name: "Przyjmujący 2", kind: "oh" },
+    MB1: { abbr: "Ś1", name: "Środkowy 1",    kind: "mb" },
+    MB2: { abbr: "Ś2", name: "Środkowy 2",    kind: "mb" },
+    OPP: { abbr: "A",  name: "Atakujący",     kind: "opp" }
+  };
+  const LIB = { abbr: "L", name: "Libero", kind: "l" };
+  const FILL = { s: "#FFD23F", oh: "#2EC4B6", mb: "#9D8CFF", opp: "#FF7AA2", l: "#F7F7F2" };
+  const TEXT = { s: "#1E1A05", oh: "#04211E", mb: "#150E3A", opp: "#3A0716", l: "#111111" };
+  const FRONT = new Set([2, 3, 4]);
+  // v: a bliżej siatki niż b (y_a < y_b);  h: a bliżej lewej linii bocznej niż b (x_a < x_b)
+  const RELS = [
+    { a: 4, b: 5, t: "v" }, { a: 3, b: 6, t: "v" }, { a: 2, b: 1, t: "v" },
+    { a: 4, b: 3, t: "h" }, { a: 3, b: 2, t: "h" }, { a: 5, b: 6, t: "h" }, { a: 6, b: 1, t: "h" }
+  ];
+
+  const BASE = { 4: [1.5, 1.5], 3: [4.5, 1.5], 2: [7.5, 1.5], 5: [1.5, 6], 6: [4.5, 6], 1: [7.5, 6] };
+  const SERVE_SPOT = [7.5, 10.3];
+  // wzorcowe ustawienia do przyjęcia (system 5-1), indeks = liczba przejść od ustawienia 1
+  const RECV = [
+    { 4: [1.5, 1.4], 3: [3.5, 1.2], 2: [7.0, 6.0], 1: [8.4, 6.6], 6: [4.5, 6.6], 5: [1.8, 6.4] }, // R w 1
+    { 4: [1.5, 5.8], 3: [6.0, 1.0], 2: [8.0, 1.0], 1: [6.8, 6.4], 6: [5.6, 3.0], 5: [4.2, 6.8] }, // R w 6
+    { 4: [1.0, 1.0], 3: [2.2, 5.8], 2: [8.0, 1.2], 1: [7.4, 6.4], 6: [4.8, 6.6], 5: [1.2, 2.8] }, // R w 5
+    { 4: [1.5, 0.8], 3: [3.5, 1.0], 2: [7.0, 5.8], 1: [8.4, 6.8], 6: [4.5, 6.6], 5: [2.0, 6.4] }, // R w 4
+    { 4: [1.8, 5.8], 3: [5.5, 0.8], 2: [7.8, 1.0], 1: [7.2, 6.4], 6: [5.6, 7.8], 5: [4.0, 6.6] }, // R w 3
+    { 4: [1.0, 1.0], 3: [2.2, 5.8], 2: [8.0, 0.8], 1: [7.4, 6.4], 6: [4.8, 6.6], 5: [1.6, 2.6] }  // R w 2
+  ];
+  const SERVE = { 4: [1.5, 1.8], 3: [4.5, 1.8], 2: [7.5, 1.8], 5: [1.5, 6.2], 6: [4.5, 6.6], 1: SERVE_SPOT };
+
+  const toPos = (src) => { const o = {}; for (const z in src) o[z] = { x: src[z][0], y: src[z][1] }; return o; };
+  const preset = (phase, k) => toPos(phase === "recv" ? RECV[k] : SERVE);
+  const basePos = (phase) => { const o = toPos(BASE); if (phase === "serve") o[1] = { x: SERVE_SPOT[0], y: SERVE_SPOT[1] }; return o; };
+  const allPresets = () => ({ recv: [0,1,2,3,4,5].map(k => preset("recv", k)), serve: [0,1,2,3,4,5].map(k => preset("serve", k)) });
+
+  const state = { k: 0, phase: "recv", inPlay: false, playPos: null, pos: allPresets(), libero: true, zones: true, arrows: false, sel: null, hov: null };
+
+  /* ---------- zapamiętywanie w przeglądarce ---------- */
+  const KEY = "rotacje-siatkowka-v2";
+  const validPos = (p) => p && [1,2,3,4,5,6].every((z) => p[z] && isFinite(p[z].x) && isFinite(p[z].y));
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (s && s.pos && ["recv", "serve"].every((ph) => Array.isArray(s.pos[ph]) && s.pos[ph].length === 6 && s.pos[ph].every(validPos))) {
+      state.pos = s.pos;
+      if (s.k >= 0 && s.k < 6) state.k = s.k;
+      if (s.phase === "recv" || s.phase === "serve") state.phase = s.phase;
+      state.libero = s.libero !== false; state.zones = s.zones !== false; state.arrows = !!s.arrows;
+    }
+  } catch (_) {}
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows })); } catch (_) {}
+  }
+
+  /* ---------- historia (cofanie ruchu) ---------- */
+  const history = [];
+  const undoBtn = document.getElementById("undo");
+  function pushHistory() {
+    history.push({ phase: state.phase, k: state.k, pos: JSON.parse(JSON.stringify(state.pos[state.phase][state.k])) });
+    if (history.length > 100) history.shift();
+    undoBtn.disabled = false;
+  }
+  function undo() {
+    const h = history.pop(); if (!h) return;
+    state.phase = h.phase; state.k = h.k; state.inPlay = false;
+    state.pos[h.phase][h.k] = h.pos;
+    undoBtn.disabled = history.length === 0;
+    save(); animate();
+  }
+
+  const pidAt = (z, k = state.k) => ORDER[(ZSEQ.indexOf(z) - k + 6) % 6];
+  const zoneOf = (pid, k = state.k) => ZSEQ[(ORDER.indexOf(pid) + k) % 6];
+  const isServer = (z) => state.phase === "serve" && z === 1;
+  const isLib = (pid, z) => state.libero && pid.startsWith("MB") && !FRONT.has(z) && !(state.phase === "serve" && z === 1);
+  const info = (pid, z) => isLib(pid, z) ? LIB : ROLES[pid];
+  const infoZ = (z) => info(pidAt(z), z);
+  const curPos = () => state.inPlay ? state.playPos : state.pos[state.phase][state.k];
+  const fmt = (v) => v.toFixed(2).replace(".", ",") + " m";
+  const chip = (z) => { const i = infoZ(z); return `<i class="chip k-${i.kind}">${i.abbr}</i>`; };
+  const tag = (z) => `${infoZ(z).abbr} (${z})`;
+
+  function playTarget(pid, z) {
+    const kind = ROLES[pid].kind, front = FRONT.has(z);
+    if (state.phase === "recv") {
+      if (kind === "s") return { x: 6.2, y: 0.8 };
+      if (front) return kind === "oh" ? { x: 0.7, y: 3.6 } : kind === "mb" ? { x: 4.0, y: 2.6 } : { x: 8.5, y: 3.6 };
+      return kind === "oh" ? { x: 4.5, y: 6.2 } : kind === "opp" ? { x: 7.6, y: 6.8 } : { x: 2.0, y: 6.8 };
+    }
+    if (front) return kind === "oh" ? { x: 1.2, y: 1.0 } : kind === "mb" ? { x: 4.5, y: 1.0 } : { x: 7.8, y: 1.0 };
+    return kind === "oh" ? { x: 4.5, y: 8.0 } : kind === "mb" ? { x: 1.4, y: 7.2 } : { x: 7.6, y: 7.2 };
+  }
+
+  function validate(pos) {
+    const rels = RELS.map((r) => {
+      const A = pos[r.a], B = pos[r.b];
+      const skip = isServer(r.a) || isServer(r.b);
+      const margin = r.t === "v" ? B.y - A.y : B.x - A.x;
+      return { ...r, skip, margin, ok: skip || margin > 0 };
+    });
+    const bounds = [];
+    for (let z = 1; z <= 6; z++) {
+      const p = pos[z];
+      if (isServer(z)) {
+        if (!(p.y > 9 && p.x >= 0 && p.x <= 9)) bounds.push({ z, msg: "zagrywający musi stać w strefie zagrywki: za linią końcową, między przedłużeniami linii bocznych" });
+      } else if (p.x < 0 || p.x > 9 || p.y < 0 || p.y > 9) {
+        bounds.push({ z, msg: "stoi poza boiskiem, a w chwili zagrywki wszyscy poza zagrywającym muszą być na boisku" });
+      }
+    }
+    const faulty = new Set();
+    rels.forEach((r) => { if (!r.ok) { faulty.add(r.a); faulty.add(r.b); } });
+    bounds.forEach((b) => faulty.add(b.z));
+    return { rels, bounds, faulty, ok: faulty.size === 0, nBad: rels.filter((r) => !r.ok).length + bounds.length };
+  }
+
+  function region(z, pos) {
+    if (isServer(z)) return { x0: 0, x1: 9, y0: 9, y1: 12.4 };
+    let x0 = 0, x1 = 9, y0 = 0, y1 = 9;
+    for (const r of RELS) {
+      if (isServer(r.a) || isServer(r.b)) continue;
+      if (r.t === "v") { if (r.a === z) y1 = Math.min(y1, pos[r.b].y); if (r.b === z) y0 = Math.max(y0, pos[r.a].y); }
+      else { if (r.a === z) x1 = Math.min(x1, pos[r.b].x); if (r.b === z) x0 = Math.max(x0, pos[r.a].x); }
+    }
+    return { x0, x1, y0, y1 };
+  }
+
+  /* ---------- statyczne boisko ---------- */
+  const svg = document.getElementById("court");
+  const dyn = document.getElementById("dyn");
+  document.getElementById("static").innerHTML = `
+    <rect x="-3" y="-1.6" width="15" height="1.6" fill="var(--free-far)"/>
+    <rect x="0" y="-1.6" width="9" height="1.6" fill="var(--court-far)"/>
+    <rect x="-3" y="0" width="15" height="12.4" fill="var(--free)"/>
+    <rect x="0" y="0" width="9" height="9" fill="var(--court)"/>
+    <rect x="0" y="0" width="9" height="9" fill="none" stroke="#fff" stroke-width="0.05"/>
+    <line x1="0" y1="3" x2="9" y2="3" stroke="#fff" stroke-width="0.05"/>
+    <line x1="-1.75" y1="3" x2="0" y2="3" stroke="#fff" stroke-width="0.05" stroke-dasharray="0.15 0.2"/>
+    <line x1="9" y1="3" x2="10.75" y2="3" stroke="#fff" stroke-width="0.05" stroke-dasharray="0.15 0.2"/>
+    <line x1="0" y1="9.2" x2="0" y2="9.35" stroke="#fff" stroke-width="0.05"/>
+    <line x1="9" y1="9.2" x2="9" y2="9.35" stroke="#fff" stroke-width="0.05"/>
+    <line x1="0" y1="9" x2="0" y2="12.4" stroke="#fff" stroke-width="0.03" stroke-dasharray="0.1 0.25" opacity=".5"/>
+    <line x1="9" y1="9" x2="9" y2="12.4" stroke="#fff" stroke-width="0.03" stroke-dasharray="0.1 0.25" opacity=".5"/>
+    <line x1="-1" y1="0" x2="10" y2="0" stroke="#0b1620" stroke-width="0.14"/>
+    <line x1="-1" y1="0" x2="10" y2="0" stroke="#fff" stroke-width="0.04" stroke-dasharray="0.1 0.1" opacity=".7"/>
+    <circle cx="-1" cy="0" r="0.16" fill="#0b1620"/><circle cx="10" cy="0" r="0.16" fill="#0b1620"/>
+    <line x1="0" y1="-0.13" x2="0" y2="0.13" stroke="#E2263C" stroke-width="0.08"/>
+    <line x1="9" y1="-0.13" x2="9" y2="0.13" stroke="#E2263C" stroke-width="0.08"/>
+    <text class="court-label w" x="-2.85" y="-0.3" font-size="0.32">SIATKA</text>
+    <text class="court-label w" x="9.15" y="2.85" font-size="0.3">LINIA ATAKU 3 m</text>
+    <text class="court-label w" x="4.5" y="12.05" font-size="0.36" text-anchor="middle">STREFA ZAGRYWKI</text>
+    <text class="court-label w" x="-2.85" y="8.85" font-size="0.3">LEWA LINIA</text>
+    <text class="court-label w" x="11.85" y="8.85" font-size="0.3" text-anchor="end">PRAWA LINIA</text>
+    <text class="court-label c" x="4.5" y="11.45" font-size="0.32" text-anchor="middle">STREFA ZAGRYWKI</text>
+    <text class="court-label c" x="9.1" y="2.88" font-size="0.26">3 m</text>
+    <g id="zoneNums">
+      ${Object.entries(BASE).map(([z, [x, y]]) => `<text class="zone-num" x="${x}" y="${y + 0.75}" font-size="2.1" text-anchor="middle">${z}</text>`).join("")}
+    </g>`;
+  const zoneNums = document.getElementById("zoneNums");
+
+  /* ---------- widok: telefon vs szeroki ekran ---------- */
+  const mq = window.matchMedia("(max-width: 640px)");
+  let compact = mq.matches;
+  const VIEW = { wide: { vb: "-3 -1.6 15 14", x: [-2.7, 11.7], y: [0, 12.1] }, compact: { vb: "-1.3 -1.2 11.6 12.9", x: [-1.05, 10.05], y: [0, 11.45] } };
+  function applyView() {
+    compact = mq.matches;
+    svg.setAttribute("viewBox", (compact ? VIEW.compact : VIEW.wide).vb);
+    svg.classList.toggle("compact", compact);
+    renderCourt();
+  }
+  mq.addEventListener ? mq.addEventListener("change", applyView) : mq.addListener(applyView);
+  if (compact) document.getElementById("rules").open = false;
+
+  /* ---------- pozycje wyświetlane i animacja ---------- */
+  let disp = {};
+  let animId = 0;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function targetsByPid() {
+    const pos = curPos(), t = {};
+    for (let z = 1; z <= 6; z++) t[pidAt(z)] = { x: pos[z].x, y: pos[z].y };
+    return t;
+  }
+  disp = targetsByPid();
+  function animate() {
+    cancelAnimationFrame(animId);
+    const from = JSON.parse(JSON.stringify(disp)), to = targetsByPid();
+    renderPanel();
+    if (reduceMotion) { disp = to; renderCourt(); return; }
+    const t0 = performance.now(), D = 600;
+    const step = (now) => {
+      const t = Math.min(1, (now - t0) / D), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      for (const p in to) disp[p] = { x: from[p].x + (to[p].x - from[p].x) * e, y: from[p].y + (to[p].y - from[p].y) * e };
+      renderCourt();
+      if (t < 1) animId = requestAnimationFrame(step);
+    };
+    animId = requestAnimationFrame(step);
+  }
+
+  /* ---------- rysowanie boiska ---------- */
+  function relationTo(z, o, v) { return v.rels.find((r) => (r.a === z && r.b === o) || (r.a === o && r.b === z)); }
+
+  function renderCourt() {
+    const pos = curPos();
+    const v = state.inPlay ? null : validate(pos);
+    const D = (z) => disp[pidAt(z)];
+    const selZ = state.sel ? zoneOf(state.sel) : null;
+    const TS = compact ? 1.15 : 1;
+    let h = "";
+
+    if (selZ && !state.inPlay) {
+      const r = region(selZ, pos);
+      if (r.x1 > r.x0 && r.y1 > r.y0) {
+        h += `<rect x="${r.x0}" y="${r.y0}" width="${r.x1 - r.x0}" height="${r.y1 - r.y0}" fill="var(--ok)" fill-opacity=".32" stroke="#fff" stroke-width="0.05" stroke-dasharray="0.18 0.12"/>`;
+      }
+    }
+
+    if (v) {
+      const labels = [];
+      v.rels.forEach((r, i) => {
+        if (r.skip) return;
+        const A = D(r.a), B = D(r.b);
+        const focus = state.hov === i || (selZ && (selZ === r.a || selZ === r.b));
+        const dim = (state.hov !== null && state.hov !== i) || (selZ && !focus && state.hov === null);
+        const col = r.ok ? "var(--ok)" : "var(--bad)";
+        const w = r.ok ? (focus ? 0.09 : 0.05) : 0.1;
+        if (!r.ok) {
+          if (r.t === "v") h += `<line x1="${Math.min(A.x, B.x) - 0.8}" y1="${B.y}" x2="${Math.max(A.x, B.x) + 0.8}" y2="${B.y}" stroke="var(--bad)" stroke-width="0.04" stroke-dasharray="0.12 0.1"/>`;
+          else h += `<line x1="${B.x}" y1="${Math.min(A.y, B.y) - 0.8}" x2="${B.x}" y2="${Math.max(A.y, B.y) + 0.8}" stroke="var(--bad)" stroke-width="0.04" stroke-dasharray="0.12 0.1"/>`;
+          labels.push({ x: (A.x + B.x) / 2, y: (A.y + B.y) / 2, t: "−" + fmt(-r.margin) });
+        }
+        h += `<g opacity="${dim ? 0.3 : 1}"><line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="var(--casing)" stroke-width="${w + 0.07}" stroke-linecap="round"/>
+              <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${r.ok ? 'stroke-dasharray="0.2 0.12"' : ""}/></g>`;
+      });
+      labels.forEach((l) => {
+        const wdt = 0.17 * l.t.length + 0.2;
+        h += `<g pointer-events="none"><rect x="${l.x - wdt / 2}" y="${l.y - 0.24}" width="${wdt}" height="0.46" rx="0.23" fill="var(--bad)"/>
+              <text class="mlabel" x="${l.x}" y="${l.y + 0.1}" font-size="0.3" text-anchor="middle" fill="#fff">${l.t}</text></g>`;
+      });
+    }
+
+    if (state.arrows && !state.inPlay) {
+      for (let z = 1; z <= 6; z++) {
+        const A = D(z), T = playTarget(pidAt(z), z);
+        const dx = T.x - A.x, dy = T.y - A.y, len = Math.hypot(dx, dy);
+        if (len < 0.9) continue;
+        const sx = A.x + dx / len * 0.55, sy = A.y + dy / len * 0.55, ex = T.x - dx / len * 0.35, ey = T.y - dy / len * 0.35;
+        h += `<g pointer-events="none"><circle cx="${T.x}" cy="${T.y}" r="0.3" fill="none" stroke="#fff" stroke-width="0.04" stroke-dasharray="0.08 0.08" opacity=".8"/>
+              <line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="#fff" stroke-width="0.05" stroke-dasharray="0.16 0.1" marker-end="url(#arrow)" opacity=".85"/></g>`;
+      }
+    }
+
+    // zaznaczony na końcu, żeby był na wierzchu
+    const zs = [1, 2, 3, 4, 5, 6].sort((a, b) => (a === selZ) - (b === selZ));
+    for (const z of zs) {
+      const pid = pidAt(z), p = D(z), i = info(pid, z);
+      const bad = v && v.faulty.has(z);
+      const sel = state.sel === pid;
+      let badge = "", dim = false;
+      if (v && selZ && !sel && !isServer(selZ)) {
+        const r = relationTo(selZ, z, v);
+        if (!r) dim = true;
+        else if (r.skip) badge = "";
+        else badge = `<circle cx="-0.4" cy="0.4" r="0.2" fill="${r.ok ? "var(--ok)" : "var(--bad)"}" stroke="#fff" stroke-width="0.04"/>
+                      <text x="-0.4" y="0.49" font-size="0.26" text-anchor="middle" fill="#fff">${r.ok ? "✓" : "✕"}</text>`;
+      }
+      h += `<g class="tk" data-pid="${pid}" transform="translate(${p.x} ${p.y}) scale(${TS})" opacity="${dim ? 0.55 : 1}">
+        <circle r="0.85" fill="#000" fill-opacity="0"/>
+        ${sel ? `<circle r="0.7" fill="#fff" fill-opacity=".25" stroke="#fff" stroke-width="0.07"/>` : ""}
+        ${bad ? `<circle r="0.57" fill="none" stroke="var(--casing)" stroke-width="0.16"/><circle r="0.57" fill="none" stroke="var(--bad)" stroke-width="0.09"/>` : ""}
+        <circle r="0.44" fill="${FILL[i.kind]}" stroke="rgba(0,0,0,.45)" stroke-width="0.04"/>
+        <text y="0.15" font-size="${i.abbr.length > 1 ? 0.4 : 0.46}" text-anchor="middle" fill="${TEXT[i.kind]}">${i.abbr}</text>
+        <circle cx="0.38" cy="-0.36" r="0.2" fill="#0b1620" stroke="#fff" stroke-width="0.03"/>
+        <text x="0.38" y="-0.28" font-size="0.24" text-anchor="middle" fill="#fff">${z}</text>
+        ${badge}
+      </g>`;
+    }
+    dyn.innerHTML = h;
+    zoneNums.style.display = state.zones ? "" : "none";
+    renderPill(v);
+  }
+
+  /* ---------- wynik nałożony na boisko ---------- */
+  const pill = document.getElementById("pill");
+  function renderPill(v) {
+    let cls, d, t;
+    if (state.inPlay) { cls = "play"; d = "▶"; t = "<b>Piłka w grze</b> · można stać dowolnie"; }
+    else {
+      const selZ = state.sel ? zoneOf(state.sel) : null;
+      if (selZ && !isServer(selZ)) {
+        const bad = v.rels.filter((r) => !r.ok && (r.a === selZ || r.b === selZ));
+        const out = v.bounds.find((b) => b.z === selZ);
+        if (out) { cls = "bad"; d = "✕"; t = `<b>${tag(selZ)}</b> poza boiskiem`; }
+        else if (bad.length) {
+          const r = bad[0];
+          t = r.t === "v" ? `<b>${tag(r.a)}</b> musi być bliżej siatki niż <b>${tag(r.b)}</b>` : `<b>${tag(r.a)}</b> musi być bardziej w lewo niż <b>${tag(r.b)}</b>`;
+          t += ` · <span class="num">brakuje ${fmt(-r.margin)}</span>`;
+          cls = "bad"; d = "✕";
+        } else if (!v.ok) { cls = "bad"; d = "✕"; t = `<b>${tag(selZ)}</b> stoi dobrze, ale są inne błędy (${v.nBad})`; }
+        else { cls = "ok"; d = "✓"; t = `<b>${tag(selZ)}</b> stoi prawidłowo`; }
+      } else if (selZ && isServer(selZ)) {
+        const out = v.bounds.find((b) => b.z === selZ);
+        cls = out ? "bad" : "ok"; d = out ? "✕" : "✓"; t = out ? "Zagrywający musi stać za linią końcową" : "Zagrywający w strefie zagrywki";
+      } else if (v.ok) { cls = "ok"; d = "✓"; t = "<b>Ustawienie prawidłowe</b>"; }
+      else { cls = "bad"; d = "✕"; t = `<b>Błąd ustawienia</b> · naruszeń: ${v.nBad}`; }
+    }
+    pill.className = "pill " + cls;
+    pill.innerHTML = `<span class="d">${d}</span><span>${t}</span>`;
+  }
+
+  /* ---------- panel ---------- */
+  const statusEl = document.getElementById("status");
+  const relsEl = document.getElementById("rels");
+  const selEl = document.getElementById("sel");
+  let lastStatus = "";
+
+  function relSentence(r) {
+    const s = r.t === "v" ? "bliżej siatki niż" : "bliżej lewej linii niż";
+    return `${chip(r.a)} <span class="num">(${r.a})</span> ${s} ${chip(r.b)} <span class="num">(${r.b})</span>`;
+  }
+
+  function renderPanel() {
+    const pos = curPos();
+    document.querySelectorAll("#rot button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.k === state.k)));
+    document.querySelectorAll("#phase button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.p === state.phase)));
+    document.getElementById("play").innerHTML = state.inPlay ? `<span class="k">◀</span> Wróć do ustawienia` : `<span class="k">▶</span> Zagraj piłkę`;
+
+    let st;
+    if (state.inPlay) {
+      st = `play|<span class="mark">▶</span><strong>Piłka w grze</strong><p>Po uderzeniu zagrywki zawodnicy biegną na swoje pozycje i mogą stać gdziekolwiek.</p>`;
+      relsEl.innerHTML = `<p class="muted" style="margin:0">W trakcie akcji zależności nie obowiązują. Wróć do ustawienia, aby sprawdzać błędy.</p>`;
+    } else {
+      const v = validate(pos);
+      const nActive = v.rels.filter((r) => !r.skip).length;
+      st = v.ok
+        ? `ok|<span class="mark">✓</span><strong>Ustawienie prawidłowe</strong><p>Spełnione wszystkie ${nActive} zależności${state.phase === "serve" ? ", zagrywający w strefie zagrywki" : ""}.</p>`
+        : `bad|<span class="mark">✕</span><strong>Błąd ustawienia</strong><p>${v.nBad === 1 ? "1 naruszenie" : v.nBad + (v.nBad < 5 ? " naruszenia" : " naruszeń")}. Sędzia przerwie akcję i przyzna punkt rywalom.</p>`;
+      const li = (r, i) => {
+        const cls = r.skip ? "skip" : r.ok ? "ok" : "bad";
+        const m = r.skip ? "zagrywa" : r.ok ? "zapas " + fmt(r.margin) : "brakuje " + fmt(-r.margin);
+        return `<li class="${cls}${state.hov === i ? " hl" : ""}" data-i="${i}"><span class="ic">${r.skip ? "–" : r.ok ? "✓" : "✕"}</span><span>${relSentence(r)}</span><span class="m">${m}</span></li>`;
+      };
+      let h = "";
+      if (v.bounds.length) h += `<div class="group-h">Poza miejscem</div><ul class="rels">${v.bounds.map((b) => `<li class="bad"><span class="ic">✕</span><span>${chip(b.z)} ${b.msg}</span><span></span></li>`).join("")}</ul>`;
+      h += `<div class="group-h">Przód – tył</div><ul class="rels">${v.rels.map((r, i) => r.t === "v" ? li(r, i) : "").join("")}</ul>`;
+      h += `<div class="group-h">Lewo – prawo</div><ul class="rels">${v.rels.map((r, i) => r.t === "h" ? li(r, i) : "").join("")}</ul>`;
+      relsEl.innerHTML = h;
+    }
+    if (st !== lastStatus) {
+      lastStatus = st;
+      const [cls, html] = st.split("|");
+      statusEl.className = "status " + cls;
+      statusEl.innerHTML = html;
+    }
+
+    if (!state.sel) {
+      selEl.innerHTML = `<h2>Zawodnik</h2><p class="muted" style="margin:0">Dotknij zawodnika. Zielone ✓ i czerwone ✕ przy innych pokażą, z kim ma zależność i czy jest spełniona. Przygaszeni zawodnicy nie mają z nim żadnej zależności. Zielony prostokąt to obszar, w którym może stanąć bez błędu.</p>`;
+      return;
+    }
+    const pid = state.sel, z = zoneOf(pid), i = info(pid, z), p = pos[z];
+    let h = `<div class="sel-head"><i class="chip k-${i.kind}">${i.abbr}</i><div><b>${i.name}</b><small>strefa ${z} · ${FRONT.has(z) ? "pierwsza linia" : "druga linia"}${isServer(z) ? " · zagrywa" : ""}</small></div></div>
+      <p class="num" style="margin-top:0">${fmt(p.x)} od lewej linii bocznej, ${fmt(p.y)} od siatki</p>`;
+    if (state.inPlay) { selEl.innerHTML = h + `<p class="muted">Piłka w grze, brak ograniczeń.</p>`; return; }
+    if (isServer(z)) {
+      selEl.innerHTML = h + `<p>Zagrywającego nie obowiązują zależności z innymi. Musi stać za linią końcową, między przedłużeniami linii bocznych. Zawodnicy ze stref 2 i 6 nie muszą się do niego odnosić.</p>`;
+      return;
+    }
+    const v = validate(pos);
+    const related = new Set(), rows = [];
+    v.rels.forEach((r) => {
+      if (r.a !== z && r.b !== z) return;
+      const o = r.a === z ? r.b : r.a;
+      related.add(o);
+      if (r.skip) { rows.push(`<li class="skip"><span class="ic">–</span><span>${chip(o)} (${o}) zagrywa, więc ta zależność nie obowiązuje</span><span></span></li>`); return; }
+      const txt = r.t === "v"
+        ? (r.a === z ? `przed ${chip(o)} <span class="num">(${o})</span>, bliżej siatki` : `za ${chip(o)} <span class="num">(${o})</span>, dalej od siatki`)
+        : (r.a === z ? `na lewo od ${chip(o)} <span class="num">(${o})</span>` : `na prawo od ${chip(o)} <span class="num">(${o})</span>`);
+      rows.push(`<li class="${r.ok ? "ok" : "bad"}"><span class="ic">${r.ok ? "✓" : "✕"}</span><span>Musi stać ${txt}</span><span class="m">${r.ok ? "zapas " + fmt(r.margin) : "brakuje " + fmt(-r.margin)}</span></li>`);
+    });
+    const free = [1, 2, 3, 4, 5, 6].filter((o) => o !== z && !related.has(o));
+    const rg = region(z, pos);
+    h += `<ul class="rels">${rows.join("")}</ul>`;
+    h += `<p><span class="muted">Bez zależności, może stać względem nich dowolnie:</span> ${free.map((o) => `${chip(o)} <span class="num">(${o})</span>`).join(" ")}</p>`;
+    if (rg.x1 > rg.x0 && rg.y1 > rg.y0) h += `<p class="num"><span class="muted">Dozwolony obszar:</span> ${fmt(rg.x0)}–${fmt(rg.x1)} od lewej linii, ${fmt(rg.y0)}–${fmt(rg.y1)} od siatki (granice wyłącznie).</p>`;
+    else h += `<p style="color:var(--bad)">Przy obecnym ustawieniu pozostałych nie ma dla niego prawidłowego miejsca. Najpierw przesuń sąsiadów.</p>`;
+    selEl.innerHTML = h;
+  }
+
+  let rafPending = false;
+  function render() { renderCourt(); renderPanel(); }
+  function renderSoon() { if (rafPending) return; rafPending = true; requestAnimationFrame(() => { rafPending = false; render(); }); }
+
+  /* ---------- sterowanie ---------- */
+  const rotEl = document.getElementById("rot");
+  rotEl.innerHTML = ZSEQ.map((z, k) => `${k ? '<span class="sep" aria-hidden="true">›</span>' : ""}<button type="button" id="rot-${z}" data-k="${k}" aria-label="Rozgrywający w strefie ${z}">${z}</button>`).join("");
+  const goto = (fn) => { fn(); state.inPlay = false; save(); animate(); };
+  rotEl.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) goto(() => { state.k = +b.dataset.k; }); });
+  document.getElementById("phase").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) goto(() => { state.phase = b.dataset.p; }); });
+  document.getElementById("next").onclick = () => goto(() => { state.k = (state.k + 1) % 6; });
+  document.getElementById("prev").onclick = () => goto(() => { state.k = (state.k + 5) % 6; });
+  undoBtn.onclick = undo;
+  document.getElementById("play").onclick = () => {
+    if (state.inPlay) state.inPlay = false;
+    else { const pp = {}; for (let z = 1; z <= 6; z++) pp[z] = playTarget(pidAt(z), z); state.playPos = pp; state.inPlay = true; }
+    animate();
+  };
+  document.getElementById("preset").onclick = () => { pushHistory(); goto(() => { state.pos[state.phase][state.k] = preset(state.phase, state.k); }); };
+  document.getElementById("base").onclick = () => { pushHistory(); goto(() => { state.pos[state.phase][state.k] = basePos(state.phase); }); };
+  document.getElementById("reset-all").onclick = () => { history.length = 0; undoBtn.disabled = true; goto(() => { state.pos = allPresets(); }); };
+  const optLib = document.getElementById("opt-lib"), optZones = document.getElementById("opt-zones"), optArrows = document.getElementById("opt-arrows");
+  optLib.checked = state.libero; optZones.checked = state.zones; optArrows.checked = state.arrows;
+  optLib.onchange = () => { state.libero = optLib.checked; save(); render(); };
+  optZones.onchange = () => { state.zones = optZones.checked; save(); renderCourt(); };
+  optArrows.onchange = () => { state.arrows = optArrows.checked; save(); renderCourt(); };
+
+  // podświetlanie pary: najechanie myszą lub dotknięcie wiersza
+  relsEl.addEventListener("pointerover", (e) => {
+    if (e.pointerType !== "mouse") return;
+    const l = e.target.closest("li[data-i]"); const i = l ? +l.dataset.i : null;
+    if (i !== state.hov) { state.hov = i; renderCourt(); }
+  });
+  relsEl.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse" && state.hov !== null) { state.hov = null; renderCourt(); } });
+  relsEl.addEventListener("click", (e) => {
+    const l = e.target.closest("li[data-i]"); if (!l) return;
+    const i = +l.dataset.i; state.hov = state.hov === i ? null : i;
+    relsEl.querySelectorAll("li[data-i]").forEach((x) => x.classList.toggle("hl", +x.dataset.i === state.hov));
+    renderCourt();
+  });
+
+  // przeciąganie
+  let drag = null;
+  const svgPoint = (e) => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  function setPos(pid, x, y) {
+    const pos = curPos(), z = zoneOf(pid), lim = compact ? VIEW.compact : VIEW.wide;
+    pos[z] = { x: clamp(x, lim.x[0], lim.x[1]), y: clamp(y, lim.y[0], lim.y[1]) };
+    disp[pid] = { x: pos[z].x, y: pos[z].y };
+  }
+  svg.addEventListener("pointerdown", (e) => {
+    const g = e.target.closest(".tk");
+    if (!g) { if (state.sel || state.hov !== null) { state.sel = null; state.hov = null; render(); } return; }
+    e.preventDefault();
+    cancelAnimationFrame(animId); disp = targetsByPid();
+    const pid = g.dataset.pid, p = svgPoint(e), cur = curPos()[zoneOf(pid)];
+    drag = { pid, dx: cur.x - p.x, dy: cur.y - p.y, id: e.pointerId, moved: false };
+    state.sel = pid; state.hov = null;
+    try { svg.setPointerCapture(e.pointerId); } catch (_) {}
+    if (e.pointerType === "mouse") svg.focus({ preventScroll: true });
+    render();
+  });
+  svg.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const p = svgPoint(e);
+    if (!drag.moved) { if (!state.inPlay) pushHistory(); drag.moved = true; }
+    setPos(drag.pid, p.x + drag.dx, p.y + drag.dy);
+    renderSoon();
+  });
+  const end = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (drag.moved && !state.inPlay) save();
+    drag = null;
+    try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+    render();
+  };
+  svg.addEventListener("pointerup", end);
+  svg.addEventListener("pointercancel", end);
+
+  svg.addEventListener("keydown", (e) => {
+    if (/^[1-6]$/.test(e.key)) { state.sel = pidAt(+e.key); render(); e.preventDefault(); return; }
+    if (e.key === "Escape") { state.sel = null; render(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+    if (!state.sel) return;
+    const s = e.shiftKey ? 0.5 : 0.1, d = { ArrowLeft: [-s, 0], ArrowRight: [s, 0], ArrowUp: [0, -s], ArrowDown: [0, s] }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    cancelAnimationFrame(animId); disp = targetsByPid();
+    if (!state.inPlay) pushHistory();
+    const p = curPos()[zoneOf(state.sel)];
+    setPos(state.sel, Math.round((p.x + d[0]) * 100) / 100, Math.round((p.y + d[1]) * 100) / 100);
+    if (!state.inPlay) save();
+    render();
+  });
+
+  applyView();
+  renderPanel();
+})();
+</script>
+</body>
+</html>
