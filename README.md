@@ -16,8 +16,19 @@ Interaktywne boisko do nauki ustawień w siatkówce i sprawdzania błędu ustawi
 
 ## Uruchomienie
 
-To jeden plik `index.html` bez zależności. Wystarczy otworzyć go w przeglądarce
-albo włączyć GitHub Pages dla tego repozytorium.
+Aplikacja działa pod adresem https://wojtasem.github.io/rotacje-siatkowka/
+
+Na telefonie otwórz ten link i dodaj go do ekranu głównego (Android: menu Chrome →
+„Dodaj do ekranu głównego”, iPhone: Safari → Udostępnij → „Do ekranu początkowego”).
+Aplikacja dostanie własną ikonę i po pierwszym otwarciu działa także bez internetu.
+
+Lokalnie wystarczy otworzyć `index.html` w przeglądarce (tryb offline działa tylko przez https).
+
+## Pliki
+
+- `index.html` – cała aplikacja
+- `manifest.webmanifest`, `icons/` – nazwa i ikona po dodaniu do ekranu głównego
+- `sw.js` – działanie offline; po zmianie listy plików lub ikon podbij w nim `CACHE`
 
 ## Uproszczenie
 
