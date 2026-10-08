@@ -1,7 +1,7 @@
 // Działanie offline: aplikacja i czcionki trafiają do pamięci podręcznej telefonu.
 // Strona jest pobierana najpierw z sieci (żeby aktualizacje docierały od razu), a bez internetu z pamięci.
 // Po zmianie listy plików lub ikon podbij numer wersji.
-const CACHE = "rotacje-v2";
+const CACHE = "rotacje-v3";
 const APP_FILES = [
   "./",
   "./index.html",

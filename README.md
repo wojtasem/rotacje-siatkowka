@@ -1,11 +1,16 @@
 # Rotacje w siatkówce
 
-Interaktywne boisko do nauki ustawień w siatkówce i sprawdzania błędu ustawienia (przepis 7.4 FIVB).
+Interaktywne boisko do nauki ustawień w siatkówce i sprawdzania błędu ustawienia
+według [przepisów FIVB 2025–2028](https://www.fivb.com/wp-content/uploads/2025/01/FIVB-Volleyball_Rules2025_2028-EN-v05.pdf) (przepisy 7.4–7.5).
 
 ## Co potrafi
 
 - 6 ustawień (według strefy rozgrywającego) z animowanym przejściem 1 → 6 → 5 → 4 → 3 → 2.
-- Dwa momenty: przyjęcie zagrywki i nasza zagrywka (zagrywający jest zwolniony z zależności).
+- Dwa momenty:
+  - przyjęcie zagrywki – sprawdzana jest pełna kolejność ustawienia,
+  - nasza zagrywka – od 2025 r. drużyna zagrywająca może stać dowolnie na swoim boisku,
+    sprawdzane jest tylko boisko i strefa zagrywki.
+- Stanie na równi z sąsiadem jest dozwolone (7.4.3).
 - Każdego zawodnika można przeciągnąć palcem lub myszą. Aplikacja na bieżąco pokazuje:
   - czy ustawienie jest prawidłowe, czy to błąd ustawienia,
   - zależności między parami zawodników (przód–tył, lewo–prawo) z zapasem lub brakiem w metrach,

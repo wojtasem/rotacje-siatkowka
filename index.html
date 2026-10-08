@@ -273,16 +273,18 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
         <button type="button" class="btn" id="reset-all">Przywróć wszystkie ustawienia wzorcowe</button>
       </div>
       <details class="card rules" id="rules" open>
-        <summary>Zasady ustawienia</summary>
+        <summary>Zasady ustawienia · FIVB 2025–2028</summary>
         <ol>
-          <li>Liczy się tylko chwila uderzenia piłki przez zagrywającego. Po uderzeniu każdy może stanąć gdziekolwiek.</li>
-          <li>Każdy zawodnik pierwszej linii stoi bliżej siatki niż jego odpowiednik z drugiej linii: 4 przed 5, 3 przed 6, 2 przed 1.</li>
-          <li>W każdej linii zawodnik z boku stoi bliżej swojej linii bocznej niż środkowy: 4 na lewo od 3, 3 na lewo od 2, 5 na lewo od 6, 6 na lewo od 1.</li>
-          <li>Pary po skosie (np. 4 i 1, 2 i 6, 4 i 6) oraz 4 i 2 nie mają żadnej bezpośredniej zależności.</li>
-          <li>Wszyscy poza zagrywającym muszą być na swoim boisku. Linie należą do boiska.</li>
-          <li>Zagrywający nie podlega tym zasadom. Musi stać w strefie zagrywki, za linią końcową, i nie może jej dotykać.</li>
+          <li>Liczy się tylko chwila uderzenia piłki przez zagrywającego. Po uderzeniu każdy może stanąć gdziekolwiek (7.4.4).</li>
+          <li>Kolejność ustawienia obowiązuje tylko drużynę <b>przyjmującą</b>. Drużyna zagrywająca może zająć dowolne pozycje (7.4).</li>
+          <li>Przód–tył: zawodnik drugiej linii stoi dalej od siatki niż odpowiadający mu zawodnik pierwszej linii lub na równi z nim. Pary to 4–5, 3–6 i 2–1 (7.4.2.1, 7.4.3.1).</li>
+          <li>Lewo–prawo: w każdej linii zawodnik z lewej strony stoi bliżej lewej linii bocznej niż pozostali z tej linii, a zawodnik z prawej strony bliżej prawej. Na równi też wolno. Pierwsza linia: 4, 3, 2. Druga linia: 5, 6, 1 (7.4.2.2, 7.4.3.2).</li>
+          <li>Zawodnicy z różnych linii, którzy nie są parą przód–tył (np. 4 i 1, 2 i 6, 4 i 6), nie mają żadnej zależności.</li>
+          <li>Obie drużyny, poza zagrywającym, muszą stać na swoim boisku. Linie należą do boiska (7.4).</li>
+          <li>Zagrywający musi stać w strefie zagrywki, za linią końcową, i nie może jej dotykać (12.4).</li>
+          <li>Błąd ustawienia to punkt i zagrywka dla rywali (7.5).</li>
         </ol>
-        <p class="note">O pozycji decydują stopy na podłożu: część stopy jednego zawodnika musi być bliżej siatki lub linii bocznej niż obie stopy drugiego. W aplikacji punktem odniesienia jest środek znacznika, więc przy różnicy kilku centymetrów decyduje rzeczywiste ustawienie stóp.</p>
+        <p class="note">O pozycji decydują stopy na podłożu. Liczy się ostatni kontakt z podłogą. Wystarczy, że część stopy jest na równi lub dalej od siatki (bliżej linii bocznej) niż stopa drugiego zawodnika. W aplikacji punktem odniesienia jest środek znacznika, więc przy różnicy kilku centymetrów decyduje rzeczywiste ustawienie stóp.</p>
       </details>
     </aside>
   </main>
@@ -304,10 +306,14 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   const FILL = { s: "#FFD23F", oh: "#2EC4B6", mb: "#9D8CFF", opp: "#FF7AA2", l: "#F7F7F2" };
   const TEXT = { s: "#1E1A05", oh: "#04211E", mb: "#150E3A", opp: "#3A0716", l: "#111111" };
   const FRONT = new Set([2, 3, 4]);
-  // v: a bliżej siatki niż b (y_a < y_b);  h: a bliżej lewej linii bocznej niż b (x_a < x_b)
+  // Przepisy FIVB 2025–2028, 7.4. Zrównanie (stanie na równi) jest dozwolone.
+  // v: a bliżej siatki niż b (y_a <= y_b) – tylko pary odpowiadające sobie, 7.4.3.1
+  // h: a bliżej lewej linii bocznej niż b (x_a <= x_b) – zawodnik z boku względem wszystkich pozostałych w swojej linii, 7.4.3.2
+  // far: para skrajnych zawodników tej samej linii (4–2, 5–1), rysowana tylko przy błędzie lub zaznaczeniu
   const RELS = [
     { a: 4, b: 5, t: "v" }, { a: 3, b: 6, t: "v" }, { a: 2, b: 1, t: "v" },
-    { a: 4, b: 3, t: "h" }, { a: 3, b: 2, t: "h" }, { a: 5, b: 6, t: "h" }, { a: 6, b: 1, t: "h" }
+    { a: 4, b: 3, t: "h" }, { a: 3, b: 2, t: "h" }, { a: 4, b: 2, t: "h", far: true },
+    { a: 5, b: 6, t: "h" }, { a: 6, b: 1, t: "h" }, { a: 5, b: 1, t: "h", far: true }
   ];
 
   const BASE = { 4: [1.5, 1.5], 3: [4.5, 1.5], 2: [7.5, 1.5], 5: [1.5, 6], 6: [4.5, 6], 1: [7.5, 6] };
@@ -365,6 +371,8 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   const pidAt = (z, k = state.k) => ORDER[(ZSEQ.indexOf(z) - k + 6) % 6];
   const zoneOf = (pid, k = state.k) => ZSEQ[(ORDER.indexOf(pid) + k) % 6];
   const isServer = (z) => state.phase === "serve" && z === 1;
+  // od 2025 r. drużyna zagrywająca może zająć dowolne pozycje na swoim boisku (7.4)
+  const freeOrder = () => state.phase === "serve";
   const isLib = (pid, z) => state.libero && pid.startsWith("MB") && !FRONT.has(z) && !(state.phase === "serve" && z === 1);
   const info = (pid, z) => isLib(pid, z) ? LIB : ROLES[pid];
   const infoZ = (z) => info(pidAt(z), z);
@@ -387,9 +395,9 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   function validate(pos) {
     const rels = RELS.map((r) => {
       const A = pos[r.a], B = pos[r.b];
-      const skip = isServer(r.a) || isServer(r.b);
+      const skip = freeOrder();
       const margin = r.t === "v" ? B.y - A.y : B.x - A.x;
-      return { ...r, skip, margin, ok: skip || margin > 0 };
+      return { ...r, skip, margin, ok: skip || margin >= 0 };
     });
     const bounds = [];
     for (let z = 1; z <= 6; z++) {
@@ -409,8 +417,8 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   function region(z, pos) {
     if (isServer(z)) return { x0: 0, x1: 9, y0: 9, y1: 12.4 };
     let x0 = 0, x1 = 9, y0 = 0, y1 = 9;
+    if (freeOrder()) return { x0, x1, y0, y1 };
     for (const r of RELS) {
-      if (isServer(r.a) || isServer(r.b)) continue;
       if (r.t === "v") { if (r.a === z) y1 = Math.min(y1, pos[r.b].y); if (r.b === z) y0 = Math.max(y0, pos[r.a].y); }
       else { if (r.a === z) x1 = Math.min(x1, pos[r.b].x); if (r.b === z) x0 = Math.max(x0, pos[r.a].x); }
     }
@@ -512,6 +520,7 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
         if (r.skip) return;
         const A = D(r.a), B = D(r.b);
         const focus = state.hov === i || (selZ && (selZ === r.a || selZ === r.b));
+        if (r.far && r.ok && !focus) return;
         const dim = (state.hov !== null && state.hov !== i) || (selZ && !focus && state.hov === null);
         const col = r.ok ? "var(--ok)" : "var(--bad)";
         const w = r.ok ? (focus ? 0.09 : 0.05) : 0.1;
@@ -578,7 +587,12 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
     if (state.inPlay) { cls = "play"; d = "▶"; t = "<b>Piłka w grze</b> · można stać dowolnie"; }
     else {
       const selZ = state.sel ? zoneOf(state.sel) : null;
-      if (selZ && !isServer(selZ)) {
+      if (freeOrder() && !(selZ && isServer(selZ))) {
+        const out = selZ ? v.bounds.find((b) => b.z === selZ) : null;
+        if (out) { cls = "bad"; d = "✕"; t = `<b>${tag(selZ)}</b> poza boiskiem`; }
+        else if (!v.ok) { cls = "bad"; d = "✕"; t = `<b>Błąd ustawienia</b> · ktoś stoi poza miejscem`; }
+        else { cls = "ok"; d = "✓"; t = selZ ? `<b>${tag(selZ)}</b> na boisku · przy własnej zagrywce dowolnie` : "<b>Zagrywamy</b> · ustawienie dowolne"; }
+      } else if (selZ && !isServer(selZ)) {
         const bad = v.rels.filter((r) => !r.ok && (r.a === selZ || r.b === selZ));
         const out = v.bounds.find((b) => b.z === selZ);
         if (out) { cls = "bad"; d = "✕"; t = `<b>${tag(selZ)}</b> poza boiskiem`; }
@@ -622,19 +636,30 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       relsEl.innerHTML = `<p class="muted" style="margin:0">W trakcie akcji zależności nie obowiązują. Wróć do ustawienia, aby sprawdzać błędy.</p>`;
     } else {
       const v = validate(pos);
-      const nActive = v.rels.filter((r) => !r.skip).length;
-      st = v.ok
-        ? `ok|<span class="mark">✓</span><strong>Ustawienie prawidłowe</strong><p>Spełnione wszystkie ${nActive} zależności${state.phase === "serve" ? ", zagrywający w strefie zagrywki" : ""}.</p>`
-        : `bad|<span class="mark">✕</span><strong>Błąd ustawienia</strong><p>${v.nBad === 1 ? "1 naruszenie" : v.nBad + (v.nBad < 5 ? " naruszenia" : " naruszeń")}. Sędzia przerwie akcję i przyzna punkt rywalom.</p>`;
+      const nBadTxt = `${v.nBad === 1 ? "1 naruszenie" : v.nBad + (v.nBad < 5 ? " naruszenia" : " naruszeń")}. Sędzia przerwie akcję i przyzna punkt rywalom.`;
+      if (freeOrder()) {
+        st = v.ok
+          ? `ok|<span class="mark">✓</span><strong>Ustawienie prawidłowe</strong><p>Przy własnej zagrywce zawodnicy mogą stać dowolnie na swoim boisku. Zagrywający jest w strefie zagrywki.</p>`
+          : `bad|<span class="mark">✕</span><strong>Błąd ustawienia</strong><p>${nBadTxt}</p>`;
+      } else {
+        st = v.ok
+          ? `ok|<span class="mark">✓</span><strong>Ustawienie prawidłowe</strong><p>Spełnione wszystkie ${v.rels.length} zależności drużyny przyjmującej.</p>`
+          : `bad|<span class="mark">✕</span><strong>Błąd ustawienia</strong><p>${nBadTxt}</p>`;
+      }
       const li = (r, i) => {
-        const cls = r.skip ? "skip" : r.ok ? "ok" : "bad";
-        const m = r.skip ? "zagrywa" : r.ok ? "zapas " + fmt(r.margin) : "brakuje " + fmt(-r.margin);
-        return `<li class="${cls}${state.hov === i ? " hl" : ""}" data-i="${i}"><span class="ic">${r.skip ? "–" : r.ok ? "✓" : "✕"}</span><span>${relSentence(r)}</span><span class="m">${m}</span></li>`;
+        const cls = r.ok ? "ok" : "bad";
+        const m = r.ok ? (r.margin === 0 ? "na równi" : "zapas " + fmt(r.margin)) : "brakuje " + fmt(-r.margin);
+        return `<li class="${cls}${state.hov === i ? " hl" : ""}" data-i="${i}"><span class="ic">${r.ok ? "✓" : "✕"}</span><span>${relSentence(r)}</span><span class="m">${m}</span></li>`;
       };
       let h = "";
       if (v.bounds.length) h += `<div class="group-h">Poza miejscem</div><ul class="rels">${v.bounds.map((b) => `<li class="bad"><span class="ic">✕</span><span>${chip(b.z)} ${b.msg}</span><span></span></li>`).join("")}</ul>`;
-      h += `<div class="group-h">Przód – tył</div><ul class="rels">${v.rels.map((r, i) => r.t === "v" ? li(r, i) : "").join("")}</ul>`;
-      h += `<div class="group-h">Lewo – prawo</div><ul class="rels">${v.rels.map((r, i) => r.t === "h" ? li(r, i) : "").join("")}</ul>`;
+      if (freeOrder()) {
+        h += `<p style="margin:0">Od sezonu z przepisami 2025–2028 drużyna <b>zagrywająca</b> nie musi zachować kolejności ustawienia (przepis 7.4). Sprawdzane jest tylko, czy zawodnicy stoją na swoim boisku, a zagrywający w strefie zagrywki.</p>
+              <p class="muted" style="margin:8px 0 0">Kolejność ustawienia obowiązuje drużynę przyjmującą. Przełącz na „Przyjęcie”, aby ją sprawdzić.</p>`;
+      } else {
+        h += `<div class="group-h">Przód – tył</div><ul class="rels">${v.rels.map((r, i) => r.t === "v" ? li(r, i) : "").join("")}</ul>`;
+        h += `<div class="group-h">Lewo – prawo</div><ul class="rels">${v.rels.map((r, i) => r.t === "h" ? li(r, i) : "").join("")}</ul>`;
+      }
       relsEl.innerHTML = h;
     }
     if (st !== lastStatus) {
@@ -653,7 +678,13 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       <p class="num" style="margin-top:0">${fmt(p.x)} od lewej linii bocznej, ${fmt(p.y)} od siatki</p>`;
     if (state.inPlay) { selEl.innerHTML = h + `<p class="muted">Piłka w grze, brak ograniczeń.</p>`; return; }
     if (isServer(z)) {
-      selEl.innerHTML = h + `<p>Zagrywającego nie obowiązują zależności z innymi. Musi stać za linią końcową, między przedłużeniami linii bocznych. Zawodnicy ze stref 2 i 6 nie muszą się do niego odnosić.</p>`;
+      selEl.innerHTML = h + `<p>Zagrywający musi stać w strefie zagrywki: za linią końcową, bez jej dotykania, między przedłużeniami linii bocznych.</p>`;
+      return;
+    }
+    if (freeOrder()) {
+      const out = validate(pos).bounds.find((b) => b.z === z);
+      selEl.innerHTML = h + `<p>Przy własnej zagrywce może stać w dowolnym miejscu swojego boiska, niezależnie od pozostałych zawodników.</p>`
+        + (out ? `<p style="color:var(--bad)">Teraz stoi poza boiskiem, a to jest błąd ustawienia.</p>` : "");
       return;
     }
     const v = validate(pos);
@@ -662,17 +693,16 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       if (r.a !== z && r.b !== z) return;
       const o = r.a === z ? r.b : r.a;
       related.add(o);
-      if (r.skip) { rows.push(`<li class="skip"><span class="ic">–</span><span>${chip(o)} (${o}) zagrywa, więc ta zależność nie obowiązuje</span><span></span></li>`); return; }
       const txt = r.t === "v"
         ? (r.a === z ? `przed ${chip(o)} <span class="num">(${o})</span>, bliżej siatki` : `za ${chip(o)} <span class="num">(${o})</span>, dalej od siatki`)
         : (r.a === z ? `na lewo od ${chip(o)} <span class="num">(${o})</span>` : `na prawo od ${chip(o)} <span class="num">(${o})</span>`);
-      rows.push(`<li class="${r.ok ? "ok" : "bad"}"><span class="ic">${r.ok ? "✓" : "✕"}</span><span>Musi stać ${txt}</span><span class="m">${r.ok ? "zapas " + fmt(r.margin) : "brakuje " + fmt(-r.margin)}</span></li>`);
+      rows.push(`<li class="${r.ok ? "ok" : "bad"}"><span class="ic">${r.ok ? "✓" : "✕"}</span><span>Musi stać ${txt}</span><span class="m">${r.ok ? (r.margin === 0 ? "na równi" : "zapas " + fmt(r.margin)) : "brakuje " + fmt(-r.margin)}</span></li>`);
     });
     const free = [1, 2, 3, 4, 5, 6].filter((o) => o !== z && !related.has(o));
     const rg = region(z, pos);
     h += `<ul class="rels">${rows.join("")}</ul>`;
     h += `<p><span class="muted">Bez zależności, może stać względem nich dowolnie:</span> ${free.map((o) => `${chip(o)} <span class="num">(${o})</span>`).join(" ")}</p>`;
-    if (rg.x1 > rg.x0 && rg.y1 > rg.y0) h += `<p class="num"><span class="muted">Dozwolony obszar:</span> ${fmt(rg.x0)}–${fmt(rg.x1)} od lewej linii, ${fmt(rg.y0)}–${fmt(rg.y1)} od siatki (granice wyłącznie).</p>`;
+    if (rg.x1 >= rg.x0 && rg.y1 >= rg.y0) h += `<p class="num"><span class="muted">Dozwolony obszar:</span> ${fmt(rg.x0)}–${fmt(rg.x1)} od lewej linii, ${fmt(rg.y0)}–${fmt(rg.y1)} od siatki. Stanie na równi z sąsiadem jest dozwolone.</p>`;
     else h += `<p style="color:var(--bad)">Przy obecnym ustawieniu pozostałych nie ma dla niego prawidłowego miejsca. Najpierw przesuń sąsiadów.</p>`;
     selEl.innerHTML = h;
   }
