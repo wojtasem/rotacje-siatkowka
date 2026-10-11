@@ -1,15 +1,15 @@
 // Działanie offline: aplikacja i czcionki trafiają do pamięci podręcznej telefonu.
 // Strona jest pobierana najpierw z sieci (żeby aktualizacje docierały od razu), a bez internetu z pamięci.
 // Po zmianie listy plików lub ikon podbij numer wersji.
-const CACHE = "rotacje-v4";
+const CACHE = "rotacje-v5";
 const APP_FILES = [
   "./",
   "./index.html",
-  "./manifest.webmanifest?v=2",
-  "./icons/icon-192.png?v=2",
-  "./icons/icon-512.png?v=2",
-  "./icons/apple-touch-icon.png?v=2",
-  "./icons/favicon-32.png?v=2"
+  "./manifest.webmanifest?v=3",
+  "./icons/icon-192.png?v=3",
+  "./icons/icon-512.png?v=3",
+  "./icons/apple-touch-icon.png?v=3",
+  "./icons/favicon-32.png?v=3"
 ];
 
 self.addEventListener("install", (event) => {
