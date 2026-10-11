@@ -32,7 +32,10 @@ Lokalnie wystarczy otworzyć `index.html` w przeglądarce (tryb offline działa 
 ## Pliki
 
 - `index.html` – cała aplikacja
-- `manifest.webmanifest`, `icons/` – nazwa i ikona po dodaniu do ekranu głównego
+- `manifest.webmanifest`, `icons/` – nazwa i ikona po dodaniu do ekranu głównego:
+  `icon-*.png` i `favicon-32.png` z przezroczystym tłem (komputer),
+  `icon-maskable-*.png` i `apple-touch-icon.png` z grafitowym tłem (telefony)
+- po zmianie ikon podbij `?v=` w `index.html`, `manifest.webmanifest` i `sw.js`
 - `sw.js` – działanie offline; po zmianie listy plików lub ikon podbij w nim `CACHE`
 
 ## Uproszczenie
