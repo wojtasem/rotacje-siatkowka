@@ -19,6 +19,26 @@ według [przepisów FIVB 2025–2028](https://www.fivb.com/wp-content/uploads/20
 - Wzorcowe ustawienia do przyjęcia w systemie 5-1, opcja libero, strzałki do pozycji w grze.
 - Cofanie ruchu, zapis ustawień w przeglądarce, układ dopasowany do smartfonów.
 
+## Skróty klawiszowe
+
+Działają w całej aplikacji (lista w aplikacji pod klawiszem `?`).
+
+| Skrót | Działanie |
+|---|---|
+| `]` / `PageDown`, `[` / `PageUp` | następne / poprzednie przejście |
+| `Shift` + `1`…`6` | ustawienie z rozgrywającym w strefie 1…6 |
+| `M` | przyjęcie ⇄ nasza zagrywka |
+| `Spacja` | zagraj piłkę / wróć do ustawienia |
+| `1`…`6` | zaznacz zawodnika w strefie |
+| `Tab` / `Shift+Tab` | następny / poprzedni zawodnik (gdy aktywne jest boisko) |
+| strzałki, `Shift`+strzałki, `Alt`+strzałki | przesuń o 10 cm / 50 cm / 1 cm |
+| `Esc` | odznacz zawodnika |
+| `Ctrl+Z`, `Ctrl+Y` (lub `Ctrl+Shift+Z`) | cofnij / ponów ruch |
+| `W`, `S` | wzorcowe ustawienie / ustaw w strefach |
+| `L`, `N`, `D` | libero / numery stref / drogi do pozycji w grze |
+| `F` | pełny ekran |
+| `?` / `H` | lista skrótów |
+
 ## Uruchomienie
 
 Aplikacja działa pod adresem https://wojtasem.github.io/rotacje-siatkowka/

@@ -175,6 +175,34 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
 .rules ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
 .rules .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
 
+/* skróty klawiszowe */
+.top-right { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.keys-btn { display: none; min-height: 36px; padding: 6px 12px; font-size: 13.5px; }
+@media (hover: hover) and (pointer: fine) { .keys-btn { display: inline-flex; } }
+.kbd {
+  display: inline-block; min-width: 22px; padding: 1px 6px; border-radius: 5px;
+  border: 1px solid var(--line); border-bottom-width: 2px; background: var(--bg); color: var(--ink);
+  font: 600 12.5px/1.5 var(--f-body); text-align: center; font-variant-numeric: tabular-nums;
+}
+#help {
+  width: min(860px, calc(100% - 32px)); max-height: calc(100% - 48px); overflow: auto;
+  border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px 22px;
+  background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+#help::backdrop { background: rgba(10, 18, 26, .55); }
+.help-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.help-head h2 { margin: 0; font-family: var(--f-display); font-size: 26px; }
+.help-grid { display: grid; gap: 8px 28px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.help-grid h3 { margin: 12px 0 6px; font-family: var(--f-display); font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.help-grid dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; font-size: 14px; }
+.help-grid dt { white-space: nowrap; }
+.help-grid dd { margin: 0; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  padding: 9px 16px; border-radius: 999px; background: var(--ink); color: var(--bg);
+  font-size: 14px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 10; pointer-events: none;
+}
+
 /* telefon */
 @media (max-width: 640px) {
   .wrap { padding-block: 10px 32px; }
@@ -207,8 +235,61 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       <p class="eyebrow">Siatkówka · przepis 7.4 FIVB</p>
       <h1>Rotacje w siatkówce</h1>
     </div>
-    <p class="lede">Przeciągnij zawodnika palcem lub myszą. Od razu zobaczysz, czy w chwili zagrywki stoi prawidłowo względem sąsiadów, czy to już błąd ustawienia.</p>
+    <div class="top-right">
+      <p class="lede">Przeciągnij zawodnika palcem lub myszą. Od razu zobaczysz, czy w chwili zagrywki stoi prawidłowo względem sąsiadów, czy to już błąd ustawienia.</p>
+      <button type="button" class="btn keys-btn" id="keys-btn" aria-haspopup="dialog" title="Skróty klawiszowe (?)"><span class="kbd">?</span> Skróty klawiszowe</button>
+    </div>
   </header>
+
+  <dialog id="help" aria-labelledby="help-title">
+    <div class="help-head">
+      <h2 id="help-title">Skróty klawiszowe</h2>
+      <button type="button" class="btn" id="help-close" aria-label="Zamknij">Zamknij <span class="kbd">Esc</span></button>
+    </div>
+    <div class="help-grid">
+      <section>
+        <h3>Rotacje i moment</h3>
+        <dl>
+          <dt><span class="kbd">]</span> <span class="kbd">PgDn</span></dt><dd>następne przejście</dd>
+          <dt><span class="kbd">[</span> <span class="kbd">PgUp</span></dt><dd>poprzednie przejście</dd>
+          <dt><span class="kbd">Shift</span>+<span class="kbd">1</span>…<span class="kbd">6</span></dt><dd>rozgrywający w strefie 1…6</dd>
+          <dt><span class="kbd">M</span></dt><dd>przyjęcie ⇄ nasza zagrywka</dd>
+          <dt><span class="kbd">Spacja</span></dt><dd>zagraj piłkę / wróć do ustawienia</dd>
+        </dl>
+      </section>
+      <section>
+        <h3>Zawodnicy</h3>
+        <dl>
+          <dt><span class="kbd">1</span>…<span class="kbd">6</span></dt><dd>zaznacz zawodnika w strefie</dd>
+          <dt><span class="kbd">Tab</span> <span class="kbd">Shift</span>+<span class="kbd">Tab</span></dt><dd>następny / poprzedni zawodnik (gdy aktywne jest boisko)</dd>
+          <dt><span class="kbd">←</span><span class="kbd">↑</span><span class="kbd">→</span><span class="kbd">↓</span></dt><dd>przesuń o 10 cm</dd>
+          <dt><span class="kbd">Shift</span>+strzałki</dt><dd>przesuń o 50 cm</dd>
+          <dt><span class="kbd">Alt</span>+strzałki</dt><dd>przesuń o 1 cm</dd>
+          <dt><span class="kbd">Esc</span></dt><dd>odznacz zawodnika</dd>
+        </dl>
+      </section>
+      <section>
+        <h3>Edycja</h3>
+        <dl>
+          <dt><span class="kbd">Ctrl</span>+<span class="kbd">Z</span></dt><dd>cofnij ruch</dd>
+          <dt><span class="kbd">Ctrl</span>+<span class="kbd">Y</span></dt><dd>ponów ruch (także <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">Z</span>)</dd>
+          <dt><span class="kbd">W</span></dt><dd>wzorcowe ustawienie</dd>
+          <dt><span class="kbd">S</span></dt><dd>ustaw w strefach</dd>
+        </dl>
+      </section>
+      <section>
+        <h3>Widok</h3>
+        <dl>
+          <dt><span class="kbd">L</span></dt><dd>libero włącz / wyłącz</dd>
+          <dt><span class="kbd">N</span></dt><dd>numery stref</dd>
+          <dt><span class="kbd">D</span></dt><dd>drogi do pozycji w grze</dd>
+          <dt><span class="kbd">F</span></dt><dd>pełny ekran</dd>
+          <dt><span class="kbd">?</span> <span class="kbd">H</span></dt><dd>ta lista skrótów</dd>
+        </dl>
+      </section>
+    </div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <main class="app">
     <section class="board" aria-label="Boisko">
@@ -227,7 +308,7 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       </div>
 
       <div class="court-frame">
-        <svg id="court" viewBox="-3 -1.6 15 14" tabindex="0" role="application" aria-label="Boisko siatkarskie, połowa naszej drużyny, siatka na górze. Klawisze 1–6 wybierają zawodnika w strefie, strzałki go przesuwają.">
+        <svg id="court" viewBox="-3 -1.6 15 14" tabindex="0" role="application" aria-label="Boisko siatkarskie, połowa naszej drużyny, siatka na górze. Klawisze 1–6 lub Tab wybierają zawodnika, strzałki go przesuwają. Znak zapytania otwiera listę skrótów.">
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" style="fill:#fff"></path>
@@ -243,7 +324,8 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
         <button type="button" class="btn primary" id="next"><span class="k">↻</span> Następne przejście</button>
         <button type="button" class="btn" id="prev"><span class="k">↺</span> Poprzednie przejście</button>
         <button type="button" class="btn" id="undo" disabled><span class="k">⟲</span> Cofnij ruch</button>
-        <button type="button" class="btn" id="play"><span class="k">▶</span> Zagraj piłkę</button>
+        <button type="button" class="btn" id="redo" disabled><span class="k">⟳</span> Ponów ruch</button>
+        <button type="button" class="btn wide" id="play"><span class="k">▶</span> Zagraj piłkę</button>
         <button type="button" class="btn" id="preset">Wzorcowe ustawienie</button>
         <button type="button" class="btn" id="base">Ustaw w strefach</button>
       </div>
@@ -352,20 +434,33 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
     try { localStorage.setItem(KEY, JSON.stringify({ pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows })); } catch (_) {}
   }
 
-  /* ---------- historia (cofanie ruchu) ---------- */
-  const history = [];
+  /* ---------- historia (cofanie i ponawianie ruchu) ---------- */
+  const history = [], future = [];
   const undoBtn = document.getElementById("undo");
+  const redoBtn = document.getElementById("redo");
+  const snapshot = (phase, k) => ({ phase, k, pos: JSON.parse(JSON.stringify(state.pos[phase][k])) });
+  function updateHistoryButtons() { undoBtn.disabled = history.length === 0; redoBtn.disabled = future.length === 0; }
   function pushHistory() {
-    history.push({ phase: state.phase, k: state.k, pos: JSON.parse(JSON.stringify(state.pos[state.phase][state.k])) });
+    history.push(snapshot(state.phase, state.k));
     if (history.length > 100) history.shift();
-    undoBtn.disabled = false;
+    future.length = 0;
+    updateHistoryButtons();
+  }
+  function restore(h) {
+    state.phase = h.phase; state.k = h.k; state.inPlay = false;
+    state.pos[h.phase][h.k] = h.pos;
+    updateHistoryButtons();
+    save(); animate();
   }
   function undo() {
     const h = history.pop(); if (!h) return;
-    state.phase = h.phase; state.k = h.k; state.inPlay = false;
-    state.pos[h.phase][h.k] = h.pos;
-    undoBtn.disabled = history.length === 0;
-    save(); animate();
+    future.push(snapshot(h.phase, h.k));
+    restore(h);
+  }
+  function redo() {
+    const f = future.pop(); if (!f) return;
+    history.push(snapshot(f.phase, f.k));
+    restore(f);
   }
 
   const pidAt = (z, k = state.k) => ORDER[(ZSEQ.indexOf(z) - k + 6) % 6];
@@ -717,22 +812,57 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   const goto = (fn) => { fn(); state.inPlay = false; save(); animate(); };
   rotEl.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) goto(() => { state.k = +b.dataset.k; }); });
   document.getElementById("phase").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) goto(() => { state.phase = b.dataset.p; }); });
-  document.getElementById("next").onclick = () => goto(() => { state.k = (state.k + 1) % 6; });
-  document.getElementById("prev").onclick = () => goto(() => { state.k = (state.k + 5) % 6; });
-  undoBtn.onclick = undo;
-  document.getElementById("play").onclick = () => {
+  const nextRotation = () => goto(() => { state.k = (state.k + 1) % 6; });
+  const prevRotation = () => goto(() => { state.k = (state.k + 5) % 6; });
+  const setRotation = (zone) => goto(() => { state.k = ZSEQ.indexOf(zone); });
+  const togglePhase = () => goto(() => { state.phase = state.phase === "recv" ? "serve" : "recv"; });
+  function togglePlay() {
     if (state.inPlay) state.inPlay = false;
     else { const pp = {}; for (let z = 1; z <= 6; z++) pp[z] = playTarget(pidAt(z), z); state.playPos = pp; state.inPlay = true; }
     animate();
-  };
-  document.getElementById("preset").onclick = () => { pushHistory(); goto(() => { state.pos[state.phase][state.k] = preset(state.phase, state.k); }); };
-  document.getElementById("base").onclick = () => { pushHistory(); goto(() => { state.pos[state.phase][state.k] = basePos(state.phase); }); };
-  document.getElementById("reset-all").onclick = () => { history.length = 0; undoBtn.disabled = true; goto(() => { state.pos = allPresets(); }); };
+  }
+  const applyPreset = () => { pushHistory(); goto(() => { state.pos[state.phase][state.k] = preset(state.phase, state.k); }); };
+  const applyBase = () => { pushHistory(); goto(() => { state.pos[state.phase][state.k] = basePos(state.phase); }); };
+  document.getElementById("next").onclick = nextRotation;
+  document.getElementById("prev").onclick = prevRotation;
+  undoBtn.onclick = undo;
+  redoBtn.onclick = redo;
+  document.getElementById("play").onclick = togglePlay;
+  document.getElementById("preset").onclick = applyPreset;
+  document.getElementById("base").onclick = applyBase;
+  document.getElementById("reset-all").onclick = () => { history.length = 0; future.length = 0; updateHistoryButtons(); goto(() => { state.pos = allPresets(); }); };
   const optLib = document.getElementById("opt-lib"), optZones = document.getElementById("opt-zones"), optArrows = document.getElementById("opt-arrows");
   optLib.checked = state.libero; optZones.checked = state.zones; optArrows.checked = state.arrows;
   optLib.onchange = () => { state.libero = optLib.checked; save(); render(); };
   optZones.onchange = () => { state.zones = optZones.checked; save(); renderCourt(); };
   optArrows.onchange = () => { state.arrows = optArrows.checked; save(); renderCourt(); };
+
+  // krótki komunikat po przełączeniu opcji skrótem
+  const toastEl = document.getElementById("toast");
+  let toastTimer = 0;
+  function toast(text) {
+    toastEl.textContent = text; toastEl.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastEl.hidden = true; }, 1600);
+  }
+  function toggleOption(input, label) {
+    input.checked = !input.checked; input.onchange();
+    toast(`${label}: ${input.checked ? "włączone" : "wyłączone"}`);
+  }
+
+  // lista skrótów
+  const helpDlg = document.getElementById("help");
+  const openHelp = () => { if (!helpDlg.open) { try { helpDlg.showModal(); } catch (_) { helpDlg.setAttribute("open", ""); } } };
+  const closeHelp = () => { if (helpDlg.open) helpDlg.close(); };
+  document.getElementById("keys-btn").onclick = openHelp;
+  document.getElementById("help-close").onclick = closeHelp;
+  helpDlg.addEventListener("click", (e) => { if (e.target === helpDlg) closeHelp(); });
+
+  function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(() => toast("Pełny ekran jest tu niedostępny"));
+    } catch (_) { toast("Pełny ekran jest tu niedostępny"); }
+  }
 
   // podświetlanie pary: najechanie myszą lub dotknięcie wiersza
   relsEl.addEventListener("pointerover", (e) => {
@@ -786,20 +916,78 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   svg.addEventListener("pointerup", end);
   svg.addEventListener("pointercancel", end);
 
-  svg.addEventListener("keydown", (e) => {
-    if (/^[1-6]$/.test(e.key)) { state.sel = pidAt(+e.key); render(); e.preventDefault(); return; }
-    if (e.key === "Escape") { state.sel = null; render(); return; }
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
-    if (!state.sel) return;
-    const s = e.shiftKey ? 0.5 : 0.1, d = { ArrowLeft: [-s, 0], ArrowRight: [s, 0], ArrowUp: [0, -s], ArrowDown: [0, s] }[e.key];
-    if (!d) return;
-    e.preventDefault();
+  /* ---------- skróty klawiszowe (w całej aplikacji) ---------- */
+  function nudge(dx, dy) {
     cancelAnimationFrame(animId); disp = targetsByPid();
     if (!state.inPlay) pushHistory();
     const p = curPos()[zoneOf(state.sel)];
-    setPos(state.sel, Math.round((p.x + d[0]) * 100) / 100, Math.round((p.y + d[1]) * 100) / 100);
+    setPos(state.sel, Math.round((p.x + dx) * 100) / 100, Math.round((p.y + dy) * 100) / 100);
     if (!state.inPlay) save();
     render();
+  }
+  function cyclePlayer(step) {
+    const cur = state.sel ? zoneOf(state.sel) : (step > 0 ? 0 : 7);
+    const z = ((cur - 1 + step + 6) % 6) + 1;
+    state.sel = pidAt(z); render();
+  }
+  const isTyping = (t) => t && (t.isContentEditable || t.tagName === "TEXTAREA" || t.tagName === "SELECT" ||
+    (t.tagName === "INPUT" && !["checkbox", "radio", "button", "submit", "range"].includes(t.type)));
+
+  document.addEventListener("keydown", (e) => {
+    if (helpDlg.open) {
+      if (e.key === "Escape" || e.key === "?" || e.code === "KeyH") { e.preventDefault(); closeHelp(); }
+      return;
+    }
+    if (isTyping(e.target) || e.isComposing) return;
+    const mod = e.ctrlKey || e.metaKey;
+
+    // cofnij / ponów
+    if (mod && !e.altKey && e.code === "KeyZ") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if (mod && !e.altKey && e.code === "KeyY") { e.preventDefault(); redo(); return; }
+
+    // przesuwanie zaznaczonego zawodnika: 10 cm, Shift 50 cm, Alt 1 cm
+    const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (dir) {
+      if (!state.sel) return;
+      const s = e.altKey ? 0.01 : e.shiftKey ? 0.5 : 0.1;
+      e.preventDefault(); nudge(dir[0] * s, dir[1] * s); return;
+    }
+    if (mod || e.altKey) return;
+
+    // cyfry: zawodnik w strefie, z Shiftem ustawienie (strefa rozgrywającego)
+    const digit = /^(?:Digit|Numpad)([1-6])$/.exec(e.code);
+    if (digit) {
+      e.preventDefault();
+      const n = +digit[1];
+      if (e.shiftKey) setRotation(n); else { state.sel = pidAt(n); render(); }
+      return;
+    }
+    if (e.key === "?") { e.preventDefault(); openHelp(); return; }
+    if (e.code === "Tab") {
+      if (document.activeElement !== svg) return;   // poza boiskiem Tab działa normalnie
+      e.preventDefault(); cyclePlayer(e.shiftKey ? -1 : 1); return;
+    }
+    if (e.code === "Space" && e.target.tagName === "INPUT") return;
+
+    const actions = {
+      BracketRight: nextRotation, PageDown: nextRotation,
+      BracketLeft: prevRotation, PageUp: prevRotation,
+      KeyM: togglePhase,
+      Space: togglePlay,
+      KeyW: applyPreset,
+      KeyS: applyBase,
+      KeyL: () => toggleOption(optLib, "Libero"),
+      KeyN: () => toggleOption(optZones, "Numery stref"),
+      KeyD: () => toggleOption(optArrows, "Drogi do pozycji w grze"),
+      KeyF: toggleFullscreen,
+      KeyH: openHelp,
+      Escape: () => { if (state.sel || state.hov !== null) { state.sel = null; state.hov = null; render(); } }
+    };
+    const act = actions[e.code];
+    if (!act) return;
+    e.preventDefault();
+    if (e.code === "Space" && document.activeElement && document.activeElement.tagName === "BUTTON") document.activeElement.blur();
+    act();
   });
 
   applyView();
