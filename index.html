@@ -379,9 +379,9 @@ html { touch-action: pan-x pan-y; }
       <p class="set-note">Wybierz gotowy widok albo zmień pojedyncze opcje poniżej – wtedy zaznaczy się widok „Użytkownika”. Boisko z werdyktem u góry jest widoczne zawsze. „Widok minimalny” zostawia tylko boisko oraz przyciski „Wzorcowe ustawienie”, „Ustaw w strefach” i „Resetuj wszystkie ustawienia”, a na komputerze także werdykt i kartę zaznaczonego zawodnika.</p>
       <div class="view-mode-label" id="view-mode-label">Obecny widok</div>
       <div class="set-presets seg-modes" role="group" aria-labelledby="view-mode-label">
-        <button type="button" class="btn" id="view-slim" aria-pressed="false">Domyślny</button>
         <button type="button" class="btn" id="view-min" aria-pressed="false">Minimalny</button>
-        <button type="button" class="btn" id="view-all" aria-pressed="false">Wszystko</button>
+        <button type="button" class="btn" id="view-slim" aria-pressed="false">Domyślny</button>
+        <button type="button" class="btn" id="view-all" aria-pressed="false">Maksymalny</button>
         <button type="button" class="btn" id="view-custom" aria-pressed="false" disabled title="Zaznacza się sam, gdy zmienisz pojedyncze opcje widoku">Użytkownika</button>
       </div>
     </section>
@@ -583,7 +583,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.34";
+  const APP_VERSION = "1.35";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -1574,7 +1574,7 @@ html { touch-action: pan-x pan-y; }
     state.arrows = mode === "all";
     state.showNames = true;
     syncOpts(); save(); applyViewPrefs(); render();
-    toast({ default: "Widok domyślny", min: "Widok minimalny", all: "Widoczne są wszystkie elementy" }[mode]);
+    toast({ default: "Widok domyślny", min: "Widok minimalny", all: "Widok maksymalny" }[mode]);
   }
   document.getElementById("view-slim").onclick = () => applyViewPreset("default");
   document.getElementById("view-min").onclick = () => applyViewPreset("min");

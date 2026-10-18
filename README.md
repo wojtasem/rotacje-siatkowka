@@ -39,18 +39,18 @@ Okno „Ustawienia” (przycisk ⚙ w nagłówku lub klawisz `U`) ma kategorie:
 | Zawodnicy | opcjonalne imiona dla 7 osób (rozgrywający, przyjmujący 1 i 2, środkowy 1 i 2, atakujący, libero) oraz „Pokaż imiona na boisku” |
 | Nazwa zapisywanego pliku | własna nazwa oraz osobno: dodaj datę (RRRR-MM-DD) i dodaj godzinę (GG-MM-SS); znaki niedozwolone w nazwach plików są zamieniane na `-` |
 
-Na górze okna widać, który wariant widoku jest teraz włączony: **Domyślny**, **Minimalny**,
-**Wszystko** albo **Użytkownika**. „Użytkownika” zaznacza się samo, gdy ręcznie zmienisz opcje
+Na górze okna widać, który wariant widoku jest teraz włączony: **Minimalny**, **Domyślny**,
+**Maksymalny** albo **Użytkownika**. „Użytkownika” zaznacza się samo, gdy ręcznie zmienisz opcje
 widoku (także numery stref, drogi do pozycji i imiona na boisku) tak, że nie pasują do żadnego
 gotowego wariantu; w pozostałych przypadkach jest wyszarzone. Libero nie wpływa na wariant.
 
 Gotowe warianty widoku:
 
-- **Widok domyślny** – większość elementów widoczna, numery stref włączone, drogi do pozycji wyłączone.
-- **Widok minimalny** – tylko boisko z werdyktem oraz „Wzorcowe ustawienie”, „Ustaw w strefach”
+- **Minimalny** – tylko boisko z werdyktem oraz „Wzorcowe ustawienie”, „Ustaw w strefach”
   i „Resetuj wszystkie ustawienia”, a na komputerze (ekran od 980 px) także werdykt i karta
   zaznaczonego zawodnika obok boiska; bez numerów stref i dróg do pozycji.
-- **Pokaż wszystko** – wszystkie elementy, numery stref i drogi do pozycji.
+- **Domyślny** – większość elementów widoczna, numery stref włączone, drogi do pozycji wyłączone.
+- **Maksymalny** – wszystkie elementy, numery stref i drogi do pozycji.
 
 Libero zostaje bez zmian we wszystkich wariantach. Imiona na boisku są widoczne we wszystkich
 gotowych wariantach (także w minimalnym); można je wyłączyć w kategorii „Zawodnicy”.
