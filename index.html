@@ -218,8 +218,14 @@ html { touch-action: pan-x pan-y; }
 
 
 .rules summary { cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: 18px; letter-spacing: .03em; text-transform: uppercase; min-height: 28px; }
-.rules ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
+.rules ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; }
+.rules li { margin-bottom: 6px; break-inside: avoid; }
 .rules .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+/* na szerokim ekranie karta zajmuje całą szerokość: zasady w dwóch kolumnach, uwaga pod nimi oddzielona linią */
+@media (min-width: 980px) {
+  .rules ol { columns: 2; column-gap: 48px; padding-left: 22px; }
+  .rules .note { padding-top: 10px; border-top: 1px solid var(--line); }
+}
 
 /* dolny rząd: zasady pod boiskiem, opcje i plik obok */
 .app-lower { margin-top: 16px; }
@@ -541,7 +547,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.26";
+  const APP_VERSION = "1.27";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
