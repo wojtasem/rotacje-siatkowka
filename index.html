@@ -344,7 +344,7 @@ html { touch-action: pan-x pan-y; }
     </div>
 
     <section class="set-sec">
-      <p class="set-note">Wybierz, co ma być widoczne na ekranie głównym. Werdykt, boisko i przycisk „Zagraj piłkę” są widoczne zawsze.</p>
+      <p class="set-note">Wybierz, co ma być widoczne na ekranie głównym. Boisko z werdyktem u góry i przycisk „Zagraj piłkę” są widoczne zawsze.</p>
       <div class="set-presets">
         <button type="button" class="btn" id="view-slim">Widok domyślny</button>
         <button type="button" class="btn" id="view-all">Pokaż wszystko</button>
@@ -500,7 +500,7 @@ html { touch-action: pan-x pan-y; }
     </section>
 
     <aside class="panel">
-      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div id="status" class="status" data-view="player" role="status" aria-live="polite"></div>
       <div class="card sel" id="sel" data-view="player"></div>
       <div class="card" data-view="rels">
         <h2>Zależności w tym ustawieniu</h2>
@@ -540,7 +540,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.24";
+  const APP_VERSION = "1.25";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -595,7 +595,7 @@ html { touch-action: pan-x pan-y; }
     { key: "history", slim: false, label: "„Cofnij ruch” i „Ponów ruch”", desc: "skróty Ctrl+Z i Ctrl+Y działają zawsze" },
     { key: "reset",   slim: true,  label: "„Resetuj wszystkie ustawienia” obok „Zagraj piłkę”", desc: "klawisz R działa zawsze" },
     { key: "filebar", slim: true,  label: "„Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF”", desc: "skróty Ctrl+S, Ctrl+O i P działają zawsze" },
-    { key: "player",  slim: true,  label: "Karta zaznaczonego zawodnika" },
+    { key: "player",  slim: true,  label: "Werdykt i karta zaznaczonego zawodnika", desc: "werdykt na boisku jest widoczny zawsze" },
     { key: "rels",    slim: true,  label: "Lista „Zależności w tym ustawieniu”" },
     { key: "hint",    slim: false, label: "Podpowiedź nad listą zależności" },
     { key: "legend",  slim: true,  label: "Legenda kolorów zawodników pod boiskiem" },

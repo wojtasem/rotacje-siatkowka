@@ -33,14 +33,14 @@ Okno „Ustawienia” (przycisk ⚙ w nagłówku lub klawisz `U`) ma kategorie:
 |---|---|
 | Nagłówek i stopka | opis pod tytułem, przycisk „Skróty klawiszowe”, stopka |
 | Przyciski pod boiskiem | „Wzorcowe ustawienie / Ustaw w strefach”, „Cofnij / Ponów ruch”, „Resetuj wszystkie ustawienia”, przyciski zapisu i wczytania pliku |
-| Panel obok boiska | karta zawodnika, lista zależności, podpowiedź nad listą |
+| Panel obok boiska | werdykt i karta zawodnika (razem), lista zależności, podpowiedź nad listą |
 | Boisko | libero, numery stref, drogi do pozycji w grze, legenda kolorów zawodników |
 | Dodatkowe karty | karta „Zasady ustawienia” |
 | Nazwa zapisywanego pliku | własna nazwa oraz osobno: dodaj datę (RRRR-MM-DD) i dodaj godzinę (GG-MM-SS); znaki niedozwolone w nazwach plików są zamieniane na `-` |
 
 Przyciski „Widok domyślny” i „Pokaż wszystko” ustawiają widoczność wszystkich elementów naraz,
 razem z numerami stref i drogami do pozycji na boisku (libero zostaje bez zmian).
-Werdykt, boisko i „Zagraj piłkę” są widoczne zawsze, a skróty klawiszowe działają także
+Boisko z werdyktem u góry i „Zagraj piłkę” są widoczne zawsze, a skróty klawiszowe działają także
 przy ukrytych przyciskach.
 
 Wybory zapisują się w przeglądarce na danym urządzeniu.
