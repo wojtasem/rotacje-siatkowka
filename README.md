@@ -32,16 +32,21 @@ Okno „Ustawienia” (przycisk ⚙ w nagłówku lub klawisz `U`) ma kategorie:
 | Kategoria | Co można ustawić |
 |---|---|
 | Nagłówek i stopka | opis pod tytułem, przycisk „Skróty klawiszowe”, stopka |
-| Przyciski pod boiskiem | „Wzorcowe ustawienie / Ustaw w strefach”, „Cofnij / Ponów ruch”, „Resetuj wszystkie ustawienia”, przyciski zapisu i wczytania pliku |
+| Przyciski pod boiskiem | „Następne / Poprzednie przejście”, „Wzorcowe ustawienie / Ustaw w strefach”, „Cofnij / Ponów ruch”, „Zagraj piłkę”, „Resetuj wszystkie ustawienia”, przyciski zapisu i wczytania pliku |
 | Panel obok boiska | werdykt i karta zawodnika (razem), lista zależności, podpowiedź nad listą |
 | Boisko | libero, numery stref, drogi do pozycji w grze, legenda kolorów zawodników |
 | Dodatkowe karty | karta „Zasady ustawienia” |
 | Nazwa zapisywanego pliku | własna nazwa oraz osobno: dodaj datę (RRRR-MM-DD) i dodaj godzinę (GG-MM-SS); znaki niedozwolone w nazwach plików są zamieniane na `-` |
 
-Przyciski „Widok domyślny” i „Pokaż wszystko” ustawiają widoczność wszystkich elementów naraz,
-razem z numerami stref i drogami do pozycji na boisku (libero zostaje bez zmian).
-Boisko z werdyktem u góry i „Zagraj piłkę” są widoczne zawsze, a skróty klawiszowe działają także
-przy ukrytych przyciskach.
+Gotowe warianty widoku:
+
+- **Widok domyślny** – większość elementów widoczna, numery stref włączone, drogi do pozycji wyłączone.
+- **Widok minimalny** – tylko boisko z werdyktem oraz „Wzorcowe ustawienie”, „Ustaw w strefach”
+  i „Resetuj wszystkie ustawienia”; bez numerów stref i dróg do pozycji.
+- **Pokaż wszystko** – wszystkie elementy, numery stref i drogi do pozycji.
+
+Libero zostaje bez zmian we wszystkich wariantach. Boisko z werdyktem u góry jest widoczne zawsze,
+a skróty klawiszowe działają także przy ukrytych przyciskach.
 
 Wybory zapisują się w przeglądarce na danym urządzeniu.
 

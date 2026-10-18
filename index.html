@@ -344,9 +344,10 @@ html { touch-action: pan-x pan-y; }
     </div>
 
     <section class="set-sec">
-      <p class="set-note">Wybierz, co ma być widoczne na ekranie głównym. Boisko z werdyktem u góry i przycisk „Zagraj piłkę” są widoczne zawsze.</p>
+      <p class="set-note">Wybierz, co ma być widoczne na ekranie głównym. Boisko z werdyktem u góry jest widoczne zawsze. „Widok minimalny” zostawia tylko boisko oraz przyciski „Wzorcowe ustawienie”, „Ustaw w strefach” i „Resetuj wszystkie ustawienia”.</p>
       <div class="set-presets">
         <button type="button" class="btn" id="view-slim">Widok domyślny</button>
+        <button type="button" class="btn" id="view-min">Widok minimalny</button>
         <button type="button" class="btn" id="view-all">Pokaż wszystko</button>
       </div>
     </section>
@@ -470,14 +471,14 @@ html { touch-action: pan-x pan-y; }
       </div>
 
       <div class="actions">
-        <button type="button" class="btn primary" id="next"><span class="k">↻</span> Następne przejście</button>
-        <button type="button" class="btn" id="prev"><span class="k">↺</span> Poprzednie przejście</button>
+        <button type="button" class="btn primary" id="next" data-view="rotnav"><span class="k">↻</span> Następne przejście</button>
+        <button type="button" class="btn" id="prev" data-view="rotnav"><span class="k">↺</span> Poprzednie przejście</button>
         <button type="button" class="btn" id="preset" data-view="layout">Wzorcowe ustawienie</button>
         <button type="button" class="btn" id="base" data-view="layout">Ustaw w strefach</button>
         <button type="button" class="btn" id="undo" data-view="history" disabled><span class="k">⟲</span> Cofnij ruch</button>
         <button type="button" class="btn" id="redo" data-view="history" disabled><span class="k">⟳</span> Ponów ruch</button>
-        <button type="button" class="btn" id="play"><span class="k">▶</span> Zagraj piłkę</button>
-        <button type="button" class="btn danger" data-action="reset" data-view="reset" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
+        <button type="button" class="btn" id="play" data-view="play"><span class="k">▶</span> Zagraj piłkę</button>
+        <button type="button" class="btn danger" id="reset-btn" data-action="reset" data-view="reset" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
       </div>
 
       <div class="filebar" data-view="filebar" role="group" aria-label="Plik z ustawieniami">
@@ -540,7 +541,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.25";
+  const APP_VERSION = "1.26";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -591,9 +592,11 @@ html { touch-action: pan-x pan-y; }
     { key: "lede",    slim: true,  label: "Opis pod tytułem" },
     { key: "keys",    slim: true,  label: "Przycisk „Skróty klawiszowe”", desc: "tylko na komputerze z myszą" },
     { key: "footer",  slim: true,  label: "Stopka (autor, wersja)" },
-    { key: "layout",  slim: true,  label: "„Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty W i S działają zawsze" },
+    { key: "rotnav",  slim: true,  label: "„Następne przejście” i „Poprzednie przejście”", desc: "przejścia zmienisz też numerami nad boiskiem i klawiszami [ ]" },
+    { key: "layout",  slim: true,  min: true, label: "„Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty W i S działają zawsze" },
     { key: "history", slim: false, label: "„Cofnij ruch” i „Ponów ruch”", desc: "skróty Ctrl+Z i Ctrl+Y działają zawsze" },
-    { key: "reset",   slim: true,  label: "„Resetuj wszystkie ustawienia” obok „Zagraj piłkę”", desc: "klawisz R działa zawsze" },
+    { key: "play",    slim: true,  label: "„Zagraj piłkę”", desc: "spacja działa zawsze" },
+    { key: "reset",   slim: true,  min: true,  label: "„Resetuj wszystkie ustawienia” obok „Zagraj piłkę”", desc: "klawisz R działa zawsze" },
     { key: "filebar", slim: true,  label: "„Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF”", desc: "skróty Ctrl+S, Ctrl+O i P działają zawsze" },
     { key: "player",  slim: true,  label: "Werdykt i karta zaznaczonego zawodnika", desc: "werdykt na boisku jest widoczny zawsze" },
     { key: "rels",    slim: true,  label: "Lista „Zależności w tym ustawieniu”" },
@@ -609,17 +612,18 @@ html { touch-action: pan-x pan-y; }
   ];
   const SETTINGS_GROUPS = [
     { title: "Nagłówek i stopka", view: ["lede", "keys", "footer"] },
-    { title: "Przyciski pod boiskiem", view: ["layout", "history", "reset", "filebar"] },
+    { title: "Przyciski pod boiskiem", view: ["rotnav", "layout", "history", "play", "reset", "filebar"] },
     { title: "Panel obok boiska", view: ["player", "rels", "hint"] },
     { title: "Boisko", opts: ["libero", "zones", "arrows"], view: ["legend"] },
     { title: "Dodatkowe karty", view: ["rules"] }
   ];
-  const viewPreset = (all) => Object.fromEntries(VIEW_ITEMS.map((v) => [v.key, all || v.slim]));
+  // warianty widoku: "default" (domyślny), "min" (minimalny), "all" (wszystko)
+  const viewPreset = (mode) => Object.fromEntries(VIEW_ITEMS.map((v) => [v.key, mode === "all" ? true : mode === "min" ? !!v.min : v.slim]));
   const DEFAULT_FILE_BASE = "rotacje-ustawienia";
 
   const state = {
     k: 0, phase: "recv", inPlay: false, playPos: null, pos: allPresets(), libero: true, zones: true, arrows: false, sel: null, hov: null,
-    view: viewPreset(false), fileBase: DEFAULT_FILE_BASE, fileDate: true, fileTime: true
+    view: viewPreset("default"), fileBase: DEFAULT_FILE_BASE, fileDate: true, fileTime: true
   };
 
   /* ---------- zapamiętywanie w przeglądarce ---------- */
@@ -1437,6 +1441,7 @@ html { touch-action: pan-x pan-y; }
     groupsEl.querySelectorAll("[data-view-opt]").forEach((inp) => { inp.checked = !!state.view[inp.dataset.viewOpt]; });
     // bez przycisku resetu „Zagraj piłkę” zajmuje cały rząd
     document.getElementById("play").classList.toggle("wide", !state.view.reset);
+    document.getElementById("reset-btn").classList.toggle("wide", !state.view.play);
   }
   groupsEl.addEventListener("change", (e) => {
     const k = e.target.dataset.viewOpt; if (!k) return;
@@ -1444,15 +1449,16 @@ html { touch-action: pan-x pan-y; }
   });
   // gotowe warianty obejmują też to, co rysuje się na boisku (numery stref, drogi do pozycji);
   // libero zostaje bez zmian, bo zmienia skład na boisku, a nie widok
-  function applyViewPreset(all) {
-    state.view = viewPreset(all);
-    state.zones = true;
-    state.arrows = all;
+  function applyViewPreset(mode) {
+    state.view = viewPreset(mode);
+    state.zones = mode !== "min";
+    state.arrows = mode === "all";
     syncOpts(); save(); applyViewPrefs(); render();
-    toast(all ? "Widoczne są wszystkie elementy" : "Przywrócono widok domyślny");
+    toast({ default: "Przywrócono widok domyślny", min: "Widok minimalny", all: "Widoczne są wszystkie elementy" }[mode]);
   }
-  document.getElementById("view-slim").onclick = () => applyViewPreset(false);
-  document.getElementById("view-all").onclick = () => applyViewPreset(true);
+  document.getElementById("view-slim").onclick = () => applyViewPreset("default");
+  document.getElementById("view-min").onclick = () => applyViewPreset("min");
+  document.getElementById("view-all").onclick = () => applyViewPreset("all");
 
   const fnBase = document.getElementById("fn-base"), fnDate = document.getElementById("fn-date"), fnTime = document.getElementById("fn-time");
   function updateFilePrefs() {
