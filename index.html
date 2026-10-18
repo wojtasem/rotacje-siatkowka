@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#1D5C9B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -95,8 +95,10 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 .court-frame { position: relative; border-radius: 12px; overflow: hidden; background: var(--free); }
-/* puste boisko przewija stronę palcem; zawodnika chwyta się bez przewijania (patrz touchstart w skrypcie) */
-#court { display: block; width: 100%; height: auto; max-width: 100%; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+/* bez powiększania (rozsuwanie palcami, podwójne stuknięcie); puste boisko przewija stronę,
+   zawodnika chwyta się bez przewijania (patrz touchstart w skrypcie) */
+html { touch-action: pan-x pan-y; }
+#court { display: block; width: 100%; height: auto; max-width: 100%; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 #court .tk { touch-action: none; }
 #court.compact .w, #court:not(.compact) .c { display: none; }
 
@@ -166,18 +168,42 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
 .status.bad { background: var(--bad-soft); border-color: var(--bad); } .status.bad .mark { background: var(--bad); }
 .status.play { background: var(--neutral-soft); border-color: var(--accent); } .status.play .mark { background: var(--accent); color: var(--accent-ink); }
 
-.rels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.rels li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 7px 8px; border-radius: 8px; font-size: 14px; }
+.rels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.rels li {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  min-height: 44px; padding: 6px 10px; border-radius: 10px; font-size: 14px;
+  border: 1px solid var(--line);
+}
+.rels li.bad { border-color: var(--bad); background: var(--bad-soft); }
+.rels li.out { grid-template-columns: 22px minmax(0, 1fr); }
 .rels li[data-i] { cursor: pointer; }
-.rels li[data-i]:hover, .rels li.hl { background: var(--neutral-soft); }
-.rels .ic { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 700 12px/1 var(--f-body); color: #fff; }
+.rels li[data-i]:hover, .rels li.hl { background: var(--neutral-soft); border-color: var(--accent); }
+.rels .ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 700 13px/1 var(--f-body); color: #fff; }
 .rels .ok .ic { background: var(--ok); }
 .rels .bad .ic { background: var(--bad); }
-.rels .skip .ic { background: var(--line); color: var(--muted); }
-.rels .skip { color: var(--muted); }
-.rels .m { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); text-align: right; }
-.rels .bad .m { color: var(--bad); font-weight: 600; }
-.group-h { font-family: var(--f-display); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 10px 0 2px; }
+.rel-body { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; min-width: 0; }
+.rel-word { color: var(--muted); font-size: 13.5px; white-space: nowrap; }
+.rel-msg { font-size: 13.5px; flex: 1 1 160px; min-width: 0; }
+.m { display: inline-block; padding: 3px 9px; border-radius: 999px; font: 600 13px/1.2 var(--f-body); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.m.ok { background: var(--ok-soft); color: var(--ok); }
+.m.bad { background: var(--bad); color: #fff; }
+/* znacznik zawodnika z numerem strefy, jak na boisku */
+.pchip {
+  position: relative; display: inline-grid; place-items: center; flex: none;
+  min-width: 34px; height: 28px; padding: 0 8px; margin-right: 8px; border-radius: 14px;
+  font: 700 15px/1 var(--f-display); border: 1.5px solid rgba(0,0,0,.35);
+}
+.pchip i {
+  position: absolute; top: -7px; right: -9px; width: 18px; height: 18px; border-radius: 50%;
+  display: grid; place-items: center; background: #0b1620; color: #fff; border: 1.5px solid var(--surface);
+  font: 700 11px/1 var(--f-display); font-style: normal;
+}
+.rels-hint { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+.rels-hint .m { padding: 1px 7px; font-size: 12px; }
+.free-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 6px; }
+.free-chips { display: inline-flex; flex-wrap: wrap; gap: 10px 4px; }
+.group-h { font-family: var(--f-display); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; }
+.group-h span { text-transform: none; letter-spacing: 0; font-family: var(--f-body); font-weight: 400; font-size: 12.5px; margin-left: 6px; }
 .group-h:first-child { margin-top: 0; }
 
 .sel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
@@ -801,9 +827,13 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   const selEl = document.getElementById("sel");
   let lastStatus = "";
 
+  // znacznik zawodnika jak na boisku: skrót roli + numer strefy w kółku
+  const pchip = (z) => { const i = infoZ(z); return `<span class="pchip k-${i.kind}" title="${i.name}, strefa ${z}">${i.abbr}<i>${z}</i></span>`; };
+  const marginPill = (r) => r.ok
+    ? `<span class="m ok">${r.margin === 0 ? "na równi" : "+" + fmt(r.margin)}</span>`
+    : `<span class="m bad">−${fmt(-r.margin)}</span>`;
   function relSentence(r) {
-    const s = r.t === "v" ? "bliżej siatki niż" : "bliżej lewej linii niż";
-    return `${chip(r.a)} <span class="num">(${r.a})</span> ${s} ${chip(r.b)} <span class="num">(${r.b})</span>`;
+    return `<span class="rel-body">${pchip(r.a)}<span class="rel-word">${r.t === "v" ? "przed" : "na lewo od"}</span>${pchip(r.b)}</span>`;
   }
 
   function renderPanel() {
@@ -828,19 +858,16 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
           ? `ok|<span class="mark">✓</span><strong>Ustawienie prawidłowe</strong><p>Spełnione wszystkie ${v.rels.length} zależności drużyny przyjmującej.</p>`
           : `bad|<span class="mark">✕</span><strong>Błąd ustawienia</strong><p>${nBadTxt}</p>`;
       }
-      const li = (r, i) => {
-        const cls = r.ok ? "ok" : "bad";
-        const m = r.ok ? (r.margin === 0 ? "na równi" : "zapas " + fmt(r.margin)) : "brakuje " + fmt(-r.margin);
-        return `<li class="${cls}${state.hov === i ? " hl" : ""}" data-i="${i}"><span class="ic">${r.ok ? "✓" : "✕"}</span><span>${relSentence(r)}</span><span class="m">${m}</span></li>`;
-      };
+      const li = (r, i) => `<li class="${r.ok ? "ok" : "bad"}${state.hov === i ? " hl" : ""}" data-i="${i}"><span class="ic">${r.ok ? "✓" : "✕"}</span>${relSentence(r)}${marginPill(r)}</li>`;
       let h = "";
-      if (v.bounds.length) h += `<div class="group-h">Poza miejscem</div><ul class="rels">${v.bounds.map((b) => `<li class="bad"><span class="ic">✕</span><span>${chip(b.z)} ${b.msg}</span><span></span></li>`).join("")}</ul>`;
+      if (v.bounds.length) h += `<div class="group-h">Poza miejscem</div><ul class="rels">${v.bounds.map((b) => `<li class="bad out"><span class="ic">✕</span><span class="rel-body">${pchip(b.z)}<span class="rel-msg">${b.msg}</span></span></li>`).join("")}</ul>`;
       if (freeOrder()) {
         h += `<p style="margin:0">Od sezonu z przepisami 2025–2028 drużyna <b>zagrywająca</b> nie musi zachować kolejności ustawienia (przepis 7.4). Sprawdzane jest tylko, czy zawodnicy stoją na swoim boisku, a zagrywający w strefie zagrywki.</p>
               <p class="muted" style="margin:8px 0 0">Kolejność ustawienia obowiązuje drużynę przyjmującą. Przełącz na „Przyjęcie”, aby ją sprawdzić.</p>`;
       } else {
-        h += `<div class="group-h">Przód – tył</div><ul class="rels">${v.rels.map((r, i) => r.t === "v" ? li(r, i) : "").join("")}</ul>`;
-        h += `<div class="group-h">Lewo – prawo</div><ul class="rels">${v.rels.map((r, i) => r.t === "h" ? li(r, i) : "").join("")}</ul>`;
+        h += `<p class="rels-hint">Po prawej: <span class="m ok">+</span> zapas do błędu, <span class="m bad">−</span> ile brakuje. Stuknij wiersz, aby pokazać parę na boisku.</p>`;
+        h += `<div class="group-h">Przód – tył <span>pierwszy bliżej siatki</span></div><ul class="rels">${v.rels.map((r, i) => r.t === "v" ? li(r, i) : "").join("")}</ul>`;
+        h += `<div class="group-h">Lewo – prawo <span>pierwszy bliżej lewej linii</span></div><ul class="rels">${v.rels.map((r, i) => r.t === "h" ? li(r, i) : "").join("")}</ul>`;
       }
       relsEl.innerHTML = h;
     }
@@ -875,15 +902,13 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       if (r.a !== z && r.b !== z) return;
       const o = r.a === z ? r.b : r.a;
       related.add(o);
-      const txt = r.t === "v"
-        ? (r.a === z ? `przed ${chip(o)} <span class="num">(${o})</span>, bliżej siatki` : `za ${chip(o)} <span class="num">(${o})</span>, dalej od siatki`)
-        : (r.a === z ? `na lewo od ${chip(o)} <span class="num">(${o})</span>` : `na prawo od ${chip(o)} <span class="num">(${o})</span>`);
-      rows.push(`<li class="${r.ok ? "ok" : "bad"}"><span class="ic">${r.ok ? "✓" : "✕"}</span><span>Musi stać ${txt}</span><span class="m">${r.ok ? (r.margin === 0 ? "na równi" : "zapas " + fmt(r.margin)) : "brakuje " + fmt(-r.margin)}</span></li>`);
+      const word = r.t === "v" ? (r.a === z ? "przed" : "za") : (r.a === z ? "na lewo od" : "na prawo od");
+      rows.push(`<li class="${r.ok ? "ok" : "bad"}"><span class="ic">${r.ok ? "✓" : "✕"}</span><span class="rel-body"><span class="rel-word">musi stać ${word}</span>${pchip(o)}</span>${marginPill(r)}</li>`);
     });
     const free = [1, 2, 3, 4, 5, 6].filter((o) => o !== z && !related.has(o));
     const rg = region(z, pos);
     h += `<ul class="rels">${rows.join("")}</ul>`;
-    h += `<p><span class="muted">Bez zależności, może stać względem nich dowolnie:</span> ${free.map((o) => `${chip(o)} <span class="num">(${o})</span>`).join(" ")}</p>`;
+    h += `<p class="free-line"><span class="muted">Bez zależności (może stać dowolnie):</span> <span class="free-chips">${free.map(pchip).join("")}</span></p>`;
     if (rg.x1 >= rg.x0 && rg.y1 >= rg.y0) h += `<p class="num"><span class="muted">Dozwolony obszar:</span> ${fmt(rg.x0)}–${fmt(rg.x1)} od lewej linii, ${fmt(rg.y0)}–${fmt(rg.y1)} od siatki. Stanie na równi z sąsiadem jest dozwolone.</p>`;
     else h += `<p style="color:var(--bad)">Przy obecnym ustawieniu pozostałych nie ma dla niego prawidłowego miejsca. Najpierw przesuń sąsiadów.</p>`;
     selEl.innerHTML = h;
