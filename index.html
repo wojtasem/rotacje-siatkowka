@@ -67,7 +67,18 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f
 button, input, summary { touch-action: manipulation; }
 .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 40px; }
 
-.top { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: end; justify-content: space-between; margin-bottom: 14px; }
+/* nagłówek: telefon – tytuł z przyciskami obok, opis pod spodem; komputer – opis pod tytułem, przyciski na wysokości opisu */
+.top {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 24px; align-items: end; margin-bottom: 14px;
+  grid-template-areas: "title buttons" "lede lede";
+}
+.top-title { grid-area: title; min-width: 0; }
+.top .lede { grid-area: lede; }
+.top-buttons { grid-area: buttons; }
+@media (min-width: 980px) {
+  .top { grid-template-areas: "title ." "lede buttons"; }
+  .top-buttons { align-self: center; justify-content: flex-end; }
+}
 .eyebrow { margin: 0 0 2px; font-family: var(--f-display); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; font-size: 13px; color: var(--accent); }
 h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 44px); line-height: 1; text-wrap: balance; }
 .lede { margin: 0; max-width: 56ch; color: var(--muted); font-size: 14px; }
@@ -223,7 +234,7 @@ html { touch-action: pan-x pan-y; }
 .rules .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
 /* na szerokim ekranie karta zajmuje całą szerokość: zasady w dwóch kolumnach, uwaga pod nimi oddzielona linią */
 @media (min-width: 980px) {
-  .rules ol { columns: 2; column-gap: 48px; padding-left: 22px; }
+  .rules ol { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, auto); grid-auto-flow: column; column-gap: 56px; padding-left: 22px; }
   .rules .note { padding-top: 10px; border-top: 1px solid var(--line); }
 }
 
@@ -257,7 +268,6 @@ html { touch-action: pan-x pan-y; }
 .foot a { color: var(--accent); }
 
 /* skróty klawiszowe */
-.top-right { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
 .keys-btn { display: none; min-height: 36px; padding: 6px 12px; font-size: 13.5px; }
 @media (hover: hover) and (pointer: fine) { .keys-btn { display: inline-flex; } }
 .kbd {
@@ -267,13 +277,6 @@ html { touch-action: pan-x pan-y; }
 }
 [hidden] { display: none !important; }
 .top-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
-/* komputer: przyciski na wysokości tytułu, opis pod nimi (wyrównany do prawej) */
-@media (min-width: 980px) {
-  .top { align-items: flex-start; }
-  .top-right { align-items: flex-end; padding-top: 25px; }
-  .top-buttons { order: -1; justify-content: flex-end; }
-  .top-right .lede { text-align: right; }
-}
 .settings-btn { min-height: 36px; padding: 6px 12px; font-size: 13.5px; }
 #help, .sheet {
   width: min(860px, calc(100% - 32px)); max-height: calc(100% - 48px); overflow: auto;
@@ -337,16 +340,14 @@ html { touch-action: pan-x pan-y; }
 
 <div class="wrap">
   <header class="top">
-    <div>
+    <div class="top-title">
       <p class="eyebrow">Siatkówka · przepis 7.4 FIVB</p>
       <h1>Rotacje w siatkówce</h1>
     </div>
-    <div class="top-right">
-      <p class="lede" data-view="lede">Przeciągnij zawodnika palcem lub myszą. Od razu zobaczysz, czy w chwili zagrywki stoi prawidłowo względem sąsiadów, czy to już błąd ustawienia.</p>
-      <div class="top-buttons">
-        <button type="button" class="btn keys-btn" id="keys-btn" data-view="keys" aria-haspopup="dialog" title="Skróty klawiszowe (?)"><span class="kbd">?</span> Skróty klawiszowe</button>
-        <button type="button" class="btn settings-btn" id="settings-btn" aria-haspopup="dialog" title="Ustawienia (U)"><span class="k">⚙</span> Ustawienia</button>
-      </div>
+    <p class="lede" data-view="lede">Przeciągnij zawodnika palcem lub myszą. Od razu zobaczysz, czy w chwili zagrywki stoi prawidłowo względem sąsiadów, czy to już błąd ustawienia.</p>
+    <div class="top-buttons">
+      <button type="button" class="btn keys-btn" id="keys-btn" data-view="keys" aria-haspopup="dialog" title="Skróty klawiszowe (?)"><span class="kbd">?</span> Skróty klawiszowe</button>
+      <button type="button" class="btn settings-btn" id="settings-btn" aria-haspopup="dialog" title="Ustawienia (U)"><span class="k">⚙</span> Ustawienia</button>
     </div>
   </header>
 
@@ -554,7 +555,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.28";
+  const APP_VERSION = "1.29";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
