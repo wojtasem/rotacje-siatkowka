@@ -36,6 +36,7 @@ Okno „Ustawienia” (przycisk ⚙ w nagłówku lub klawisz `U`) ma kategorie:
 | Panel obok boiska | werdykt i karta zawodnika (razem), lista zależności, podpowiedź nad listą |
 | Boisko | libero, numery stref, drogi do pozycji w grze, legenda kolorów zawodników |
 | Dodatkowe karty | karta „Zasady ustawienia” |
+| Zawodnicy | opcjonalne imiona dla 7 osób (rozgrywający, przyjmujący 1 i 2, środkowy 1 i 2, atakujący, libero) oraz „Pokaż imiona na boisku” |
 | Nazwa zapisywanego pliku | własna nazwa oraz osobno: dodaj datę (RRRR-MM-DD) i dodaj godzinę (GG-MM-SS); znaki niedozwolone w nazwach plików są zamieniane na `-` |
 
 Gotowe warianty widoku:
@@ -46,7 +47,15 @@ Gotowe warianty widoku:
   zaznaczonego zawodnika obok boiska; bez numerów stref i dróg do pozycji.
 - **Pokaż wszystko** – wszystkie elementy, numery stref i drogi do pozycji.
 
-Libero zostaje bez zmian we wszystkich wariantach. Boisko z werdyktem u góry jest widoczne zawsze,
+Libero zostaje bez zmian we wszystkich wariantach. Imiona na boisku są widoczne w widoku
+domyślnym i „Pokaż wszystko”, a ukryte w widoku minimalnym.
+
+### Imiona zawodników
+
+Imię jest przypisane do zawodnika, a nie do strefy – przesuwa się z nim przy każdym przejściu.
+Skrót pozycji (R, P1, Ś1…) zostaje w znaczniku, a imię pojawia się pod nim. Libero ma własne
+imię, widoczne wtedy, gdy zastępuje środkowego w drugiej linii. Imiona są też w karcie
+zaznaczonego zawodnika, w PDF i w pliku JSON (pole `imiona`). Reset ich nie kasuje. Boisko z werdyktem u góry jest widoczne zawsze,
 a skróty klawiszowe działają także przy ukrytych przyciskach.
 
 Wybory zapisują się w przeglądarce na danym urządzeniu.

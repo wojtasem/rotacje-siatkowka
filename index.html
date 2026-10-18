@@ -255,6 +255,16 @@ html { touch-action: pan-x pan-y; }
 .filebar .file-msg:empty { display: none; }
 @media (max-width: 420px) { .filebar .btn { font-size: 12.5px; padding: 8px 6px; gap: 4px; } }
 
+/* imiona zawodników w Ustawieniach */
+.names-grid { display: grid; gap: 8px 20px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin: 6px 0 10px; }
+.name-field { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 4px 10px; font-size: 13px; color: var(--muted); }
+.name-field .chip { grid-row: span 2; justify-self: center; }
+.name-field input {
+  font: 400 15px var(--f-body); padding: 8px 10px; min-height: 40px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%;
+}
+.name-field input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+
 /* plik z ustawieniami i stopka */
 .file-msg { margin: 8px 0 0; font-size: 13.5px; min-height: 1.2em; }
 .file-msg.ok { color: var(--ok); }
@@ -369,6 +379,14 @@ html { touch-action: pan-x pan-y; }
     <div id="set-groups"></div>
 
     <section class="set-sec">
+      <h3>Zawodnicy</h3>
+      <p class="set-note">Wpisz imiona, jeśli chcesz – nie jest to obowiązkowe. Imię jest przypisane do zawodnika, a nie do strefy, więc przesuwa się z nim przy każdym przejściu. Skrót pozycji (R, P1, Ś1…) zostaje w znaczniku.</p>
+      <label class="set-item"><input type="checkbox" data-opt="showNames"> <span>Pokaż imiona na boisku<small>imię pojawia się pod znacznikiem zawodnika; puste pola są pomijane</small></span></label>
+      <div class="names-grid" id="names-grid"></div>
+      <button type="button" class="btn" id="names-clear">Wyczyść imiona</button>
+    </section>
+
+    <section class="set-sec">
       <h3>Nazwa zapisywanego pliku</h3>
       <p class="set-note">Dotyczy plików z przycisków „Zapisz do pliku” i „Zapisz PDF” na ekranie głównym.</p>
       <label class="set-field" for="fn-base">Nazwa pliku
@@ -445,7 +463,7 @@ html { touch-action: pan-x pan-y; }
         <li>opcje wrócą do domyślnych (libero i numery stref włączone, drogi do pozycji wyłączone),</li>
         <li>historia cofania ruchów zostanie wyczyszczona.</li>
       </ul>
-      <p>Widok ekranu i nazwa pliku zostają bez zmian.</p>
+      <p>Imiona zawodników, widok ekranu i nazwa pliku zostają bez zmian.</p>
       <p class="warn">Tej operacji nie można cofnąć. Jeśli chcesz zachować obecne ustawienia, anuluj i najpierw użyj przycisku „Zapisz do pliku”.</p>
     </div>
     <div class="confirm-actions">
@@ -555,7 +573,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.30";
+  const APP_VERSION = "1.31";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -570,6 +588,16 @@ html { touch-action: pan-x pan-y; }
     OPP: { abbr: "A",  name: "Atakujący",     kind: "opp" }
   };
   const LIB = { abbr: "L", name: "Libero", kind: "l" };
+  // pola imion w Ustawieniach (libero to osobna osoba)
+  const NAME_FIELDS = [
+    { key: "S", abbr: "R", label: "Rozgrywający", kind: "s" },
+    { key: "OH1", abbr: "P1", label: "Przyjmujący 1", kind: "oh" },
+    { key: "OH2", abbr: "P2", label: "Przyjmujący 2", kind: "oh" },
+    { key: "MB1", abbr: "Ś1", label: "Środkowy 1", kind: "mb" },
+    { key: "MB2", abbr: "Ś2", label: "Środkowy 2", kind: "mb" },
+    { key: "OPP", abbr: "A", label: "Atakujący", kind: "opp" },
+    { key: "L", abbr: "L", label: "Libero", kind: "l" }
+  ];
   const FILL = { s: "#FFD23F", oh: "#2EC4B6", mb: "#9D8CFF", opp: "#FF7AA2", l: "#F7F7F2" };
   const TEXT = { s: "#1E1A05", oh: "#04211E", mb: "#150E3A", opp: "#3A0716", l: "#111111" };
   const FRONT = new Set([2, 3, 4]);
@@ -640,7 +668,8 @@ html { touch-action: pan-x pan-y; }
 
   const state = {
     k: 0, phase: "recv", inPlay: false, playPos: null, pos: allPresets(), libero: true, zones: true, arrows: false, sel: null, hov: null,
-    view: viewPreset("default"), fileBase: DEFAULT_FILE_BASE, fileDate: true, fileTime: true
+    view: viewPreset("default"), fileBase: DEFAULT_FILE_BASE, fileDate: true, fileTime: true,
+    names: { S: "", OH1: "", OH2: "", MB1: "", MB2: "", OPP: "", L: "" }, showNames: true
   };
 
   /* ---------- zapamiętywanie w przeglądarce ---------- */
@@ -658,6 +687,8 @@ html { touch-action: pan-x pan-y; }
     if (s && typeof s.fileBase === "string") state.fileBase = s.fileBase;
     if (s && typeof s.fileDate === "boolean") state.fileDate = s.fileDate;
     if (s && typeof s.fileTime === "boolean") state.fileTime = s.fileTime;
+    if (s && s.names && typeof s.names === "object") for (const k in state.names) if (typeof s.names[k] === "string") state.names[k] = s.names[k].slice(0, 20);
+    if (s && typeof s.showNames === "boolean") state.showNames = s.showNames;
     // 1.18: przyciski „Wzorcowe ustawienie / Ustaw w strefach” domyślnie widoczne – jednorazowo włączamy je
     // także u osób, którym wersja 1.17 zapisała je jako ukryte
     if (s && s.view && !(s.viewV >= 2)) state.view.layout = true;
@@ -670,7 +701,8 @@ html { touch-action: pan-x pan-y; }
     try {
       localStorage.setItem(KEY, JSON.stringify({
         pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows,
-        view: state.view, viewV: 4, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime
+        view: state.view, viewV: 4, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime,
+        names: state.names, showNames: state.showNames
       }));
     } catch (_) {}
   }
@@ -716,6 +748,12 @@ html { touch-action: pan-x pan-y; }
   const fmt = (v) => v.toFixed(2).replace(".", ",") + " m";
   const chip = (z) => { const i = infoZ(z); return `<i class="chip k-${i.kind}">${i.abbr}</i>`; };
   const tag = (z) => `${infoZ(z).abbr} (${z})`;
+  // imię zawodnika w danej strefie; libero ma własne imię
+  const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ESC[c]);
+  const nameOf = (pid, z) => ((isLib(pid, z) ? state.names.L : state.names[pid]) || "").trim();
+  const nameAt = (z) => nameOf(pidAt(z), z);
+  const shortName = (n, max) => n.length > max ? n.slice(0, max - 1) + "…" : n;
 
   function playTarget(pid, z) {
     const kind = ROLES[pid].kind, front = FRONT.has(z);
@@ -909,6 +947,7 @@ html { touch-action: pan-x pan-y; }
         <circle cx="0.38" cy="-0.36" r="0.2" fill="#0b1620" stroke="#fff" stroke-width="0.03"/>
         <text x="0.38" y="-0.28" font-size="0.24" text-anchor="middle" fill="#fff">${z}</text>
         ${badge}
+        ${state.showNames && nameOf(pid, z) ? `<text class="nm" y="0.86" font-size="0.32" text-anchor="middle" fill="#fff" stroke="#0b1620" stroke-width="0.1" stroke-linejoin="round" paint-order="stroke">${esc(shortName(nameOf(pid, z), 14))}</text>` : ""}
       </g>`;
     }
     dyn.innerHTML = h;
@@ -956,7 +995,7 @@ html { touch-action: pan-x pan-y; }
   let lastStatus = "";
 
   // znacznik zawodnika jak na boisku: skrót roli + numer strefy w kółku
-  const pchip = (z) => { const i = infoZ(z); return `<span class="pchip k-${i.kind}" title="${i.name}, strefa ${z}">${i.abbr}<i>${z}</i></span>`; };
+  const pchip = (z) => { const i = infoZ(z), n = nameAt(z); return `<span class="pchip k-${i.kind}" title="${n ? esc(n) + " – " : ""}${i.name}, strefa ${z}">${i.abbr}<i>${z}</i></span>`; };
   const marginPill = (r) => r.ok
     ? `<span class="m ok">${r.margin === 0 ? "na równi" : "+" + fmt(r.margin)}</span>`
     : `<span class="m bad">−${fmt(-r.margin)}</span>`;
@@ -1011,7 +1050,8 @@ html { touch-action: pan-x pan-y; }
       return;
     }
     const pid = state.sel, z = zoneOf(pid), i = info(pid, z), p = pos[z];
-    let h = `<div class="sel-head"><i class="chip k-${i.kind}">${i.abbr}</i><div><b>${i.name}</b><small>strefa ${z} · ${FRONT.has(z) ? "pierwsza linia" : "druga linia"}${isServer(z) ? " · zagrywa" : ""}</small></div></div>
+    const nm = nameOf(pid, z);
+    let h = `<div class="sel-head"><i class="chip k-${i.kind}">${i.abbr}</i><div><b>${nm ? esc(nm) : i.name}</b><small>${nm ? i.name + " · " : ""}strefa ${z} · ${FRONT.has(z) ? "pierwsza linia" : "druga linia"}${isServer(z) ? " · zagrywa" : ""}</small></div></div>
       <p class="num" style="margin-top:0">${fmt(p.x)} od lewej linii bocznej, ${fmt(p.y)} od siatki</p>`;
     if (state.inPlay) { selEl.innerHTML = h + `<p class="muted">Piłka w grze, brak ograniczeń.</p>`; return; }
     if (isServer(z)) {
@@ -1167,7 +1207,8 @@ html { touch-action: pan-x pan-y; }
       data_eksportu_lokalna: humanStamp(d),
       przepisy: "FIVB 2025–2028",
       jednostki: "metry; x – odległość od lewej linii bocznej, y – odległość od siatki; klucze 1–6 to strefy",
-      opcje: { libero: state.libero, numery_stref: state.zones, drogi_do_pozycji: state.arrows },
+      opcje: { libero: state.libero, numery_stref: state.zones, drogi_do_pozycji: state.arrows, imiona_na_boisku: state.showNames },
+      imiona: Object.fromEntries(NAME_FIELDS.map((f) => [f.abbr, state.names[f.key]])),
       ustawienia: ZSEQ.map((sz, k) => ({ rozgrywajacy_w_strefie: sz, przyjecie: phaseData("recv", k), zagrywka: phaseData("serve", k) }))
     };
   }
@@ -1207,13 +1248,17 @@ html { touch-action: pan-x pan-y; }
         pos[ph][k] = out;
       }
     }
-    return { pos, opcje: obj.opcje || {} };
+    return { pos, opcje: obj.opcje || {}, imiona: obj.imiona && typeof obj.imiona === "object" ? obj.imiona : null };
   }
 
   function importText(text, fileName) {
     try {
-      const { pos, opcje } = parseImport(text);
+      const { pos, opcje, imiona } = parseImport(text);
       state.pos = pos;
+      if (typeof opcje.imiona_na_boisku === "boolean") state.showNames = opcje.imiona_na_boisku;
+      // imiona z pliku zastępują obecne; plik bez imion zostawia obecne bez zmian
+      if (imiona) for (const f of NAME_FIELDS) state.names[f.key] = typeof imiona[f.abbr] === "string" ? imiona[f.abbr].slice(0, 20) : "";
+      updateNameInputs();
       if (typeof opcje.libero === "boolean") state.libero = opcje.libero;
       if (typeof opcje.numery_stref === "boolean") state.zones = opcje.numery_stref;
       if (typeof opcje.drogi_do_pozycji === "boolean") state.arrows = opcje.drogi_do_pozycji;
@@ -1307,6 +1352,12 @@ html { touch-action: pan-x pan-y; }
         ctx.fillStyle = "#0b1620"; ctx.beginPath(); ctx.arc(cx + 0.38 * s, cy - 0.36 * s, 0.2 * s, 0, 2 * Math.PI); ctx.fill();
         ctx.fillStyle = "#fff"; ctx.font = `700 ${0.25 * s}px "Barlow Condensed", Arial, sans-serif`;
         ctx.fillText(String(z), cx + 0.38 * s, cy - 0.35 * s);
+        const nm = state.showNames ? nameAt(z) : "";
+        if (nm) {
+          ctx.font = `600 ${0.32 * s}px Barlow, Arial, sans-serif`; ctx.lineJoin = "round";
+          ctx.strokeStyle = "#fff"; ctx.lineWidth = 0.1 * s; ctx.strokeText(shortName(nm, 14), cx, cy + 0.78 * s);
+          ctx.fillStyle = PRINT.ink; ctx.fillText(shortName(nm, 14), cx, cy + 0.78 * s);
+        }
       }
       ctx.restore();
       ctx.strokeStyle = "#B8C4D0"; ctx.lineWidth = 2; ctx.strokeRect(ox, oy, W, H);
@@ -1357,7 +1408,8 @@ html { touch-action: pan-x pan-y; }
           [1, 6, 5, 2, 3, 4].forEach((z, i) => {
             const p = res.pos[z];
             const tx = ox + (i < 3 ? 0 : colW / 2), yy = ty + (i % 3) * 11 * U;
-            ctx.fillText(`strefa ${z} · ${infoZ(z).abbr} · x ${p.x.toFixed(2).replace(".", ",")} m · y ${p.y.toFixed(2).replace(".", ",")} m`, tx, yy);
+            const nm = nameAt(z);
+            ctx.fillText(`strefa ${z} · ${infoZ(z).abbr}${nm ? " " + shortName(nm, 10) : ""} · x ${p.x.toFixed(2).replace(".", ",")} m · y ${p.y.toFixed(2).replace(".", ",")} m`, tx, yy);
           });
         });
         blockH = Math.max(blockH, ty + 3 * 11 * U - y);
@@ -1441,6 +1493,19 @@ html { touch-action: pan-x pan-y; }
   /* ---------- ustawienia: widok ekranu i nazwa pliku ---------- */
   const settingsDlg = document.getElementById("settings");
   const groupsEl = document.getElementById("set-groups");
+  const namesGrid = document.getElementById("names-grid");
+  namesGrid.innerHTML = NAME_FIELDS.map((f) =>
+    `<label class="name-field"><i class="chip k-${f.kind}">${f.abbr}</i><span>${f.label}</span><input type="text" data-name="${f.key}" maxlength="20" autocomplete="off" placeholder="imię (opcjonalnie)"></label>`).join("");
+  function updateNameInputs() { namesGrid.querySelectorAll("[data-name]").forEach((inp) => { inp.value = state.names[inp.dataset.name]; }); }
+  namesGrid.addEventListener("input", (e) => {
+    const k = e.target.dataset.name; if (!k) return;
+    state.names[k] = e.target.value.slice(0, 20); save(); renderCourt(); renderPanel();
+  });
+  document.getElementById("names-clear").onclick = () => {
+    for (const k in state.names) state.names[k] = "";
+    updateNameInputs(); save(); renderCourt(); renderPanel(); toast("Wyczyszczono imiona");
+  };
+  updateNameInputs();
   const VIEW_BY_KEY = Object.fromEntries(VIEW_ITEMS.map((v) => [v.key, v]));
   const OPT_BY_KEY = Object.fromEntries(OPT_ITEMS.map((o) => [o.opt, o]));
   const setItem = (attr, label, desc) => `<label class="set-item"><input type="checkbox" ${attr}> <span>${label}${desc ? `<small>${desc}</small>` : ""}</span></label>`;
@@ -1470,6 +1535,7 @@ html { touch-action: pan-x pan-y; }
     state.view = viewPreset(mode);
     state.zones = mode !== "min";
     state.arrows = mode === "all";
+    state.showNames = mode !== "min";
     syncOpts(); save(); applyViewPrefs(); render();
     toast({ default: "Przywrócono widok domyślny", min: "Widok minimalny", all: "Widoczne są wszystkie elementy" }[mode]);
   }
