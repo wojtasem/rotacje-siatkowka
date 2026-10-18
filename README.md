@@ -1,5 +1,7 @@
 # Rotacje w siatkówce
 
+Autor: **Wojciech Marynowski**
+
 Interaktywne boisko do nauki ustawień w siatkówce i sprawdzania błędu ustawienia
 według [przepisów FIVB 2025–2028](https://www.fivb.com/wp-content/uploads/2025/01/FIVB-Volleyball_Rules2025_2028-EN-v05.pdf) (przepisy 7.4–7.5).
 
@@ -17,7 +19,34 @@ według [przepisów FIVB 2025–2028](https://www.fivb.com/wp-content/uploads/20
   - obszar, w którym wybrany zawodnik może stanąć bez błędu,
   - z kim zawodnik nie ma żadnej zależności.
 - Wzorcowe ustawienia do przyjęcia w systemie 5-1, opcja libero, strzałki do pozycji w grze.
-- Cofanie ruchu, zapis ustawień w przeglądarce, układ dopasowany do smartfonów.
+- Cofanie i ponawianie ruchu, zapis ustawień w przeglądarce, układ dopasowany do smartfonów.
+- Zapis wszystkich ustawień do pliku JSON i wczytanie ich z pliku (np. przeniesienie
+  z komputera na telefon albo przesłanie innemu trenerowi).
+
+## Plik z ustawieniami
+
+Przycisk „Zapisz do pliku” (lub `Ctrl+S`) tworzy plik `rotacje-ustawienia-RRRR-MM-DD.json`:
+
+```json
+{
+  "aplikacja": "Rotacje w siatkówce",
+  "format": 1,
+  "autor_aplikacji": "Wojciech Marynowski",
+  "przepisy": "FIVB 2025–2028",
+  "jednostki": "metry; x – odległość od lewej linii bocznej, y – odległość od siatki; klucze 1–6 to strefy",
+  "opcje": { "libero": true, "numery_stref": true, "drogi_do_pozycji": false },
+  "ustawienia": [
+    {
+      "rozgrywajacy_w_strefie": 1,
+      "przyjecie": { "1": { "zawodnik": "R", "rola": "Rozgrywający", "x": 8.4, "y": 6.6 }, "...": "..." },
+      "zagrywka":  { "...": "..." }
+    }
+  ]
+}
+```
+
+„Wczytaj z pliku” (lub `Ctrl+O`) sprawdza plik i zastępuje nim wszystkie ustawienia.
+Błędny plik jest odrzucany z opisem problemu, a obecne ustawienia zostają bez zmian.
 
 ## Skróty klawiszowe
 
@@ -35,6 +64,7 @@ Działają w całej aplikacji (lista w aplikacji pod klawiszem `?`).
 | `Esc` | odznacz zawodnika |
 | `Ctrl+Z`, `Ctrl+Y` (lub `Ctrl+Shift+Z`) | cofnij / ponów ruch |
 | `W`, `S` | wzorcowe ustawienie / ustaw w strefach |
+| `Ctrl+S`, `Ctrl+O` | zapisz ustawienia do pliku / wczytaj z pliku |
 | `L`, `N`, `D` | libero / numery stref / drogi do pozycji w grze |
 | `F` | pełny ekran |
 | `?` / `H` | lista skrótów |

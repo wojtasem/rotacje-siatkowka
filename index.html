@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="Rotacje">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Rotacje w siatkówce</title>
+<meta name="author" content="Wojciech Marynowski">
+<meta name="description" content="Interaktywne boisko do sprawdzania rotacji i błędów ustawienia w siatkówce według przepisów FIVB 2025–2028.">
 <link rel="manifest" href="manifest.webmanifest?v=5">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=5">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=5">
@@ -175,6 +177,20 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
 .rules ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
 .rules .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
 
+/* plik z ustawieniami i stopka */
+.file-card p.muted { margin: 0 0 10px; font-size: 14px; max-width: 60ch; }
+.file-actions { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.file-msg { margin: 8px 0 0; font-size: 13.5px; min-height: 1.2em; }
+.file-msg.ok { color: var(--ok); }
+.file-msg.bad { color: var(--bad); }
+.foot {
+  display: flex; flex-wrap: wrap; gap: 6px 20px; justify-content: space-between;
+  margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line);
+  font-size: 13.5px; color: var(--muted);
+}
+.foot b { color: var(--ink); font-weight: 600; }
+.foot a { color: var(--accent); }
+
 /* skróty klawiszowe */
 .top-right { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
 .keys-btn { display: none; min-height: 36px; padding: 6px 12px; font-size: 13.5px; }
@@ -275,6 +291,8 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
           <dt><span class="kbd">Ctrl</span>+<span class="kbd">Y</span></dt><dd>ponów ruch (także <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">Z</span>)</dd>
           <dt><span class="kbd">W</span></dt><dd>wzorcowe ustawienie</dd>
           <dt><span class="kbd">S</span></dt><dd>ustaw w strefach</dd>
+          <dt><span class="kbd">Ctrl</span>+<span class="kbd">S</span></dt><dd>zapisz ustawienia do pliku</dd>
+          <dt><span class="kbd">Ctrl</span>+<span class="kbd">O</span></dt><dd>wczytaj ustawienia z pliku</dd>
         </dl>
       </section>
       <section>
@@ -354,6 +372,16 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
         <label><input type="checkbox" id="opt-arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
         <button type="button" class="btn" id="reset-all">Przywróć wszystkie ustawienia wzorcowe</button>
       </div>
+      <div class="card file-card">
+        <h2>Plik z ustawieniami</h2>
+        <p class="muted">Zapisz pozycje zawodników ze wszystkich 6 ustawień (przyjęcie i zagrywka) oraz opcje do pliku. Wczytasz go na innym urządzeniu albo prześlesz drugiemu trenerowi.</p>
+        <div class="file-actions">
+          <button type="button" class="btn primary" id="export-btn"><span class="k">⭳</span> Zapisz do pliku</button>
+          <button type="button" class="btn" id="import-btn"><span class="k">⭱</span> Wczytaj z pliku</button>
+        </div>
+        <input type="file" id="import-file" accept=".json,application/json" hidden>
+        <p class="file-msg" id="file-msg" role="status" aria-live="polite"></p>
+      </div>
       <details class="card rules" id="rules" open>
         <summary>Zasady ustawienia · FIVB 2025–2028</summary>
         <ol>
@@ -370,6 +398,12 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       </details>
     </aside>
   </main>
+
+  <footer class="foot">
+    <span>Autor: <b>Wojciech Marynowski</b></span>
+    <span>Zasady według przepisów FIVB 2025–2028</span>
+    <a href="https://github.com/wojtasem/rotacje-siatkowka" target="_blank" rel="noopener">Kod na GitHubie</a>
+  </footer>
 </div>
 
 <script>
@@ -857,6 +891,103 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   document.getElementById("help-close").onclick = closeHelp;
   helpDlg.addEventListener("click", (e) => { if (e.target === helpDlg) closeHelp(); });
 
+  /* ---------- plik z ustawieniami: zapis i wczytanie ---------- */
+  const AUTHOR = "Wojciech Marynowski";
+  const fileMsg = document.getElementById("file-msg");
+  const importInput = document.getElementById("import-file");
+  const round2 = (v) => Math.round(v * 100) / 100;
+  function showFileMsg(text, ok) { fileMsg.textContent = text; fileMsg.className = "file-msg " + (ok ? "ok" : "bad"); }
+
+  function buildExport() {
+    const phaseData = (ph, k) => {
+      const o = {};
+      for (let z = 1; z <= 6; z++) {
+        const p = state.pos[ph][k][z], pid = pidAt(z, k);
+        o[z] = { zawodnik: ROLES[pid].abbr, rola: ROLES[pid].name, x: round2(p.x), y: round2(p.y) };
+      }
+      return o;
+    };
+    return {
+      aplikacja: "Rotacje w siatkówce",
+      format: 1,
+      autor_aplikacji: AUTHOR,
+      adres: "https://wojtasem.github.io/rotacje-siatkowka/",
+      data_eksportu: new Date().toISOString(),
+      przepisy: "FIVB 2025–2028",
+      jednostki: "metry; x – odległość od lewej linii bocznej, y – odległość od siatki; klucze 1–6 to strefy",
+      opcje: { libero: state.libero, numery_stref: state.zones, drogi_do_pozycji: state.arrows },
+      ustawienia: ZSEQ.map((sz, k) => ({ rozgrywajacy_w_strefie: sz, przyjecie: phaseData("recv", k), zagrywka: phaseData("serve", k) }))
+    };
+  }
+
+  function exportFile() {
+    const data = JSON.stringify(buildExport(), null, 2);
+    const d = new Date(), pad = (n) => String(n).padStart(2, "0");
+    const name = `rotacje-ustawienia-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
+    try {
+      const url = URL.createObjectURL(new Blob([data], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showFileMsg(`Zapisano plik ${name}`, true);
+    } catch (_) {
+      showFileMsg("Nie udało się zapisać pliku w tej przeglądarce.", false);
+    }
+  }
+
+  // sprawdza plik i zwraca pozycje w formacie aplikacji albo rzuca błąd z opisem
+  function parseImport(text) {
+    let obj;
+    try { obj = JSON.parse(text); } catch (_) { throw new Error("To nie jest poprawny plik JSON."); }
+    if (!obj || !Array.isArray(obj.ustawienia) || obj.ustawienia.length !== 6) throw new Error("W pliku nie ma 6 ustawień zapisanych przez tę aplikację.");
+    const pos = { recv: [], serve: [] };
+    const okNum = (v, lo, hi) => typeof v === "number" && isFinite(v) && v >= lo && v <= hi;
+    for (const u of obj.ustawienia) {
+      const k = ZSEQ.indexOf(Number(u && u.rozgrywajacy_w_strefie));
+      if (k < 0 || pos.recv[k]) throw new Error("Ustawienia w pliku mają błędne lub powtórzone numery stref rozgrywającego.");
+      for (const [ph, key] of [["recv", "przyjecie"], ["serve", "zagrywka"]]) {
+        const src = u[key], out = {};
+        for (let z = 1; z <= 6; z++) {
+          const p = src && src[z];
+          if (!p || !okNum(p.x, -3, 12) || !okNum(p.y, -1, 13)) throw new Error(`Brak lub błędna pozycja strefy ${z} (rozgrywający w strefie ${ZSEQ[k]}, ${key}).`);
+          out[z] = { x: p.x, y: p.y };
+        }
+        pos[ph][k] = out;
+      }
+    }
+    return { pos, opcje: obj.opcje || {} };
+  }
+
+  function importText(text, fileName) {
+    try {
+      const { pos, opcje } = parseImport(text);
+      state.pos = pos;
+      if (typeof opcje.libero === "boolean") state.libero = opcje.libero;
+      if (typeof opcje.numery_stref === "boolean") state.zones = opcje.numery_stref;
+      if (typeof opcje.drogi_do_pozycji === "boolean") state.arrows = opcje.drogi_do_pozycji;
+      optLib.checked = state.libero; optZones.checked = state.zones; optArrows.checked = state.arrows;
+      history.length = 0; future.length = 0; updateHistoryButtons();
+      state.inPlay = false; state.sel = null;
+      save(); animate();
+      showFileMsg(`Wczytano ustawienia z pliku ${fileName}.`, true);
+      toast("Wczytano ustawienia z pliku");
+    } catch (err) {
+      showFileMsg(`Nie wczytano pliku: ${err.message}`, false);
+    }
+  }
+
+  document.getElementById("export-btn").onclick = exportFile;
+  document.getElementById("import-btn").onclick = () => importInput.click();
+  importInput.onchange = () => {
+    const f = importInput.files && importInput.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => importText(String(reader.result), f.name);
+    reader.onerror = () => showFileMsg("Nie udało się odczytać pliku.", false);
+    reader.readAsText(f);
+    importInput.value = "";
+  };
+
   function toggleFullscreen() {
     try {
       if (document.fullscreenElement) document.exitFullscreen();
@@ -944,6 +1075,9 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
     // cofnij / ponów
     if (mod && !e.altKey && e.code === "KeyZ") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
     if (mod && !e.altKey && e.code === "KeyY") { e.preventDefault(); redo(); return; }
+    // plik z ustawieniami
+    if (mod && !e.altKey && !e.shiftKey && e.code === "KeyS") { e.preventDefault(); exportFile(); return; }
+    if (mod && !e.altKey && !e.shiftKey && e.code === "KeyO") { e.preventDefault(); importInput.click(); return; }
 
     // przesuwanie zaznaczonego zawodnika: 10 cm, Shift 50 cm, Alt 1 cm
     const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];

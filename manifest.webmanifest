@@ -1,7 +1,7 @@
 {
   "name": "Rotacje w siatkówce",
   "short_name": "Rotacje",
-  "description": "Interaktywne boisko do sprawdzania rotacji i błędów ustawienia w siatkówce.",
+  "description": "Interaktywne boisko do sprawdzania rotacji i błędów ustawienia w siatkówce. Autor: Wojciech Marynowski.",
   "lang": "pl",
   "start_url": "./",
   "scope": "./",
