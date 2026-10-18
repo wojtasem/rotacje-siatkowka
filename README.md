@@ -38,7 +38,8 @@ Okno „Ustawienia” (przycisk ⚙ w nagłówku lub klawisz `U`) ma kategorie:
 | Dodatkowe karty | karta „Zasady ustawienia” |
 | Nazwa zapisywanego pliku | własna nazwa oraz osobno: dodaj datę (RRRR-MM-DD) i dodaj godzinę (GG-MM-SS); znaki niedozwolone w nazwach plików są zamieniane na `-` |
 
-Przyciski „Widok domyślny” i „Pokaż wszystko” ustawiają widoczność wszystkich elementów naraz.
+Przyciski „Widok domyślny” i „Pokaż wszystko” ustawiają widoczność wszystkich elementów naraz,
+razem z numerami stref i drogami do pozycji na boisku (libero zostaje bez zmian).
 Werdykt, boisko i „Zagraj piłkę” są widoczne zawsze, a skróty klawiszowe działają także
 przy ukrytych przyciskach.
 

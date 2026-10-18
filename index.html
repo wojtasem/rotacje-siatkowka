@@ -540,7 +540,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.23";
+  const APP_VERSION = "1.24";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -1442,8 +1442,17 @@ html { touch-action: pan-x pan-y; }
     const k = e.target.dataset.viewOpt; if (!k) return;
     state.view[k] = e.target.checked; save(); applyViewPrefs(); renderPanel();
   });
-  document.getElementById("view-slim").onclick = () => { state.view = viewPreset(false); save(); applyViewPrefs(); renderPanel(); toast("Przywrócono widok domyślny"); };
-  document.getElementById("view-all").onclick = () => { state.view = viewPreset(true); save(); applyViewPrefs(); renderPanel(); toast("Widoczne są wszystkie elementy"); };
+  // gotowe warianty obejmują też to, co rysuje się na boisku (numery stref, drogi do pozycji);
+  // libero zostaje bez zmian, bo zmienia skład na boisku, a nie widok
+  function applyViewPreset(all) {
+    state.view = viewPreset(all);
+    state.zones = true;
+    state.arrows = all;
+    syncOpts(); save(); applyViewPrefs(); render();
+    toast(all ? "Widoczne są wszystkie elementy" : "Przywrócono widok domyślny");
+  }
+  document.getElementById("view-slim").onclick = () => applyViewPreset(false);
+  document.getElementById("view-all").onclick = () => applyViewPreset(true);
 
   const fnBase = document.getElementById("fn-base"), fnDate = document.getElementById("fn-date"), fnTime = document.getElementById("fn-time");
   function updateFilePrefs() {
