@@ -267,6 +267,13 @@ html { touch-action: pan-x pan-y; }
 }
 [hidden] { display: none !important; }
 .top-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+/* komputer: przyciski na wysokości tytułu, opis pod nimi (wyrównany do prawej) */
+@media (min-width: 980px) {
+  .top { align-items: flex-start; }
+  .top-right { align-items: flex-end; padding-top: 25px; }
+  .top-buttons { order: -1; justify-content: flex-end; }
+  .top-right .lede { text-align: right; }
+}
 .settings-btn { min-height: 36px; padding: 6px 12px; font-size: 13.5px; }
 #help, .sheet {
   width: min(860px, calc(100% - 32px)); max-height: calc(100% - 48px); overflow: auto;
@@ -547,7 +554,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.27";
+  const APP_VERSION = "1.28";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
