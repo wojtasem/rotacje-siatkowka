@@ -583,7 +583,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.33";
+  const APP_VERSION = "1.34";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -706,12 +706,16 @@ html { touch-action: pan-x pan-y; }
     if (s && s.view && !(s.viewV >= 3)) state.view.history = false;
     // 1.21: opis pod tytułem i legenda zawodników domyślnie widoczne
     if (s && s.view && !(s.viewV >= 4)) { state.view.lede = true; state.view.legend = true; }
+    // 1.34: widok minimalny pokazuje imiona – jednorazowo włączamy je u osób, które mają włączony widok minimalny
+    if (s && s.view && !(s.viewV >= 5) && !state.zones && !state.arrows &&
+        [true, false].some((d) => { const mv = viewPreset("min", d); return VIEW_ITEMS.every((v) => !!state.view[v.key] === mv[v.key]); }))
+      state.showNames = true;
   } catch (_) {}
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify({
         pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows,
-        view: state.view, viewV: 4, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime,
+        view: state.view, viewV: 5, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime,
         names: state.names, showNames: state.showNames
       }));
     } catch (_) {}
@@ -1540,7 +1544,7 @@ html { touch-action: pan-x pan-y; }
 
   // który wariant widoku jest teraz włączony; widok liczy się razem z numerami stref, drogami i imionami
   const VIEW_OPTS = ["zones", "arrows", "showNames"];
-  const presetOpts = (mode) => ({ zones: mode !== "min", arrows: mode === "all", showNames: mode !== "min" });
+  const presetOpts = (mode) => ({ zones: mode !== "min", arrows: mode === "all", showNames: true });
   const sameView = (view, opts, mode, desktop) => {
     const pv = viewPreset(mode, desktop), po = presetOpts(mode);
     return VIEW_ITEMS.every((v) => !!view[v.key] === pv[v.key]) && VIEW_OPTS.every((k) => !!opts[k] === po[k]);
@@ -1568,7 +1572,7 @@ html { touch-action: pan-x pan-y; }
     state.view = viewPreset(mode);
     state.zones = mode !== "min";
     state.arrows = mode === "all";
-    state.showNames = mode !== "min";
+    state.showNames = true;
     syncOpts(); save(); applyViewPrefs(); render();
     toast({ default: "Widok domyślny", min: "Widok minimalny", all: "Widoczne są wszystkie elementy" }[mode]);
   }

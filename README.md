@@ -52,8 +52,8 @@ Gotowe warianty widoku:
   zaznaczonego zawodnika obok boiska; bez numerów stref i dróg do pozycji.
 - **Pokaż wszystko** – wszystkie elementy, numery stref i drogi do pozycji.
 
-Libero zostaje bez zmian we wszystkich wariantach. Imiona na boisku są widoczne w widoku
-domyślnym i „Pokaż wszystko”, a ukryte w widoku minimalnym.
+Libero zostaje bez zmian we wszystkich wariantach. Imiona na boisku są widoczne we wszystkich
+gotowych wariantach (także w minimalnym); można je wyłączyć w kategorii „Zawodnicy”.
 
 ### Imiona zawodników
 
