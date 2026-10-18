@@ -540,7 +540,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.22";
+  const APP_VERSION = "1.23";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -1105,10 +1105,15 @@ html { touch-action: pan-x pan-y; }
   const importInput = document.getElementById("import-file");
   const round2 = (v) => Math.round(v * 100) / 100;
   // komunikat pokazujemy w karcie „Plik” i w Ustawieniach
+  // komunikat znika sam: po zapisie po 4 s, przy błędzie po 8 s; „Tworzę PDF…” zostaje do końca tworzenia
+  let fileMsgTimer = 0;
   function showFileMsg(text, ok) {
+    const busy = /…$/.test(text);
     document.querySelectorAll(".file-msg").forEach((el) => { el.textContent = text; el.className = "file-msg " + (ok ? "ok" : "bad"); });
+    clearTimeout(fileMsgTimer);
+    if (!busy) fileMsgTimer = setTimeout(() => document.querySelectorAll(".file-msg").forEach((el) => { el.textContent = ""; }), ok ? 4000 : 8000);
     // gdy przyciski zapisu są ukryte (zapis skrótem klawiszowym), komunikat pokazujemy w dymku
-    if (!state.view.filebar && !/…$/.test(text)) toast(text);
+    if (!state.view.filebar && !busy) toast(text);
   }
   // data i czas zapisu: w nazwie pliku bez dwukropków (Windows ich nie dopuszcza), w treści czytelnie
   const p2 = (x) => String(x).padStart(2, "0");
