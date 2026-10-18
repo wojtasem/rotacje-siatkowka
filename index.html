@@ -95,7 +95,9 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 .court-frame { position: relative; border-radius: 12px; overflow: hidden; background: var(--free); }
-#court { display: block; width: 100%; height: auto; max-width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+/* puste boisko przewija stronę palcem; zawodnika chwyta się bez przewijania (patrz touchstart w skrypcie) */
+#court { display: block; width: 100%; height: auto; max-width: 100%; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#court .tk { touch-action: none; }
 #court.compact .w, #court:not(.compact) .c { display: none; }
 
 .pill {
@@ -1299,9 +1301,16 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
     pos[z] = { x: clamp(x, lim.x[0], lim.x[1]), y: clamp(y, lim.y[0], lim.y[1]) };
     disp[pid] = { x: pos[z].x, y: pos[z].y };
   }
+  // dotyk: tylko chwycenie zawodnika blokuje przewijanie strony, przesunięcie po pustym boisku przewija stronę
+  svg.addEventListener("touchstart", (e) => {
+    if (e.target.closest && e.target.closest(".tk")) e.preventDefault();
+  }, { passive: false });
+
+  let tap = null;                                      // stuknięcie w puste miejsce (odznacza zawodnika)
   svg.addEventListener("pointerdown", (e) => {
     const g = e.target.closest(".tk");
-    if (!g) { if (state.sel || state.hov !== null) { state.sel = null; state.hov = null; render(); } return; }
+    if (!g) { tap = { id: e.pointerId, x: e.clientX, y: e.clientY }; return; }
+    tap = null;
     e.preventDefault();
     cancelAnimationFrame(animId); disp = targetsByPid();
     const pid = g.dataset.pid, p = svgPoint(e), cur = curPos()[zoneOf(pid)];
@@ -1309,8 +1318,17 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
     state.sel = pid; state.hov = null;
     try { svg.setPointerCapture(e.pointerId); } catch (_) {}
     if (e.pointerType === "mouse") svg.focus({ preventScroll: true });
-    render();
+    // przerysowanie dopiero w następnej klatce: dotknięty element musi jeszcze istnieć,
+    // gdy przeglądarka wyśle touchstart (inaczej nie zablokujemy przewijania)
+    renderSoon();
   });
+  svg.addEventListener("pointerup", (e) => {
+    if (!tap || e.pointerId !== tap.id) return;
+    const moved = Math.hypot(e.clientX - tap.x, e.clientY - tap.y);
+    tap = null;
+    if (moved < 10 && (state.sel || state.hov !== null)) { state.sel = null; state.hov = null; render(); }
+  });
+  svg.addEventListener("pointercancel", () => { tap = null; });
   svg.addEventListener("pointermove", (e) => {
     if (!drag || e.pointerId !== drag.id) return;
     const p = svgPoint(e);
