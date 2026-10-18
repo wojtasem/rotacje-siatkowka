@@ -117,7 +117,7 @@ html { touch-action: pan-x pan-y; }
 .pill b { font-weight: 600; }
 .pill .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* przyciski parami w stałej kolejności: przejścia, ustawienia wzorcowe, cofnij/ponów, zagraj piłkę */
+/* przyciski parami w stałej kolejności: przejścia, ustawienia wzorcowe, cofnij/ponów, zagraj piłkę + reset */
 .actions { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
 .actions .wide { grid-column: 1 / -1; }
 .btn {
@@ -498,7 +498,8 @@ html { touch-action: pan-x pan-y; }
         <button type="button" class="btn" id="base" data-view="layout">Ustaw w strefach</button>
         <button type="button" class="btn" id="undo" data-view="history" disabled><span class="k">⟲</span> Cofnij ruch</button>
         <button type="button" class="btn" id="redo" data-view="history" disabled><span class="k">⟳</span> Ponów ruch</button>
-        <button type="button" class="btn wide" id="play"><span class="k">▶</span> Zagraj piłkę</button>
+        <button type="button" class="btn" id="play"><span class="k">▶</span> Zagraj piłkę</button>
+        <button type="button" class="btn danger" data-action="reset" data-view="reset" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
       </div>
 
       <div class="filebar" data-view="filebar" role="group" aria-label="Plik z ustawieniami">
@@ -570,7 +571,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.19";
+  const APP_VERSION = "1.20";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -622,6 +623,7 @@ html { touch-action: pan-x pan-y; }
     { key: "keys",    slim: true,  label: "Przycisk „Skróty klawiszowe”", desc: "tylko na komputerze z myszą" },
     { key: "layout",  slim: true,  label: "Przyciski „Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty klawiszowe W i S działają zawsze" },
     { key: "history", slim: false, label: "Przyciski „Cofnij ruch” i „Ponów ruch”", desc: "skróty Ctrl+Z i Ctrl+Y działają zawsze" },
+    { key: "reset",   slim: true,  label: "Przycisk „Resetuj wszystkie ustawienia” obok „Zagraj piłkę”", desc: "reset jest też w Ustawieniach i pod klawiszem R" },
     { key: "filebar", slim: true,  label: "Przyciski „Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF”", desc: "nazwę pliku ustawisz niżej; skróty Ctrl+S, Ctrl+O i P działają zawsze" },
     { key: "legend",  slim: false, label: "Legenda kolorów pod boiskiem" },
     { key: "player",  slim: true,  label: "Karta zaznaczonego zawodnika" },
@@ -1443,6 +1445,8 @@ html { touch-action: pan-x pan-y; }
     lower.hidden = !state.view.rules && !rightVisible;
     lower.classList.toggle("one-col", !(state.view.rules && rightVisible));
     viewList.querySelectorAll("[data-view-opt]").forEach((inp) => { inp.checked = !!state.view[inp.dataset.viewOpt]; });
+    // bez przycisku resetu „Zagraj piłkę” zajmuje cały rząd
+    document.getElementById("play").classList.toggle("wide", !state.view.reset);
   }
   viewList.addEventListener("change", (e) => {
     const k = e.target.dataset.viewOpt; if (!k) return;
