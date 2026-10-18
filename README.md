@@ -93,8 +93,15 @@ Lokalnie wystarczy otworzyć `index.html` w przeglądarce (tryb offline działa 
 - `manifest.webmanifest`, `icons/` – nazwa i ikona po dodaniu do ekranu głównego:
   `icon-*.png` i `favicon-32.png` z przezroczystym tłem (komputer),
   `icon-maskable-*.png` i `apple-touch-icon.png` z grafitowym tłem (telefony)
+- `sw.js` – działanie offline (pamięć podręczna `CACHE`)
 - po zmianie ikon podbij `?v=` w `index.html`, `manifest.webmanifest` i `sw.js`
-- `sw.js` – działanie offline; po zmianie listy plików lub ikon podbij w nim `CACHE`
+
+## Wydanie nowej wersji
+
+1. W `index.html` podbij `APP_VERSION` i `APP_DATE` – numer widać w stopce aplikacji,
+   w zapisanym pliku JSON i w nagłówku PDF.
+2. W `sw.js` ustaw `CACHE` na `rotacje-v<numer po kropce>` (np. 1.15 → `rotacje-v15`),
+   żeby telefony pobrały nową wersję do pamięci offline.
 
 ## Uproszczenie
 

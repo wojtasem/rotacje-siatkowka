@@ -481,12 +481,18 @@ html { touch-action: pan-x pan-y; }
   <footer class="foot">
     <span>Autor: <b>Wojciech Marynowski</b></span>
     <span>Zasady według przepisów FIVB 2025–2028</span>
+    <span id="app-version" class="num"></span>
     <a href="https://github.com/wojtasem/rotacje-siatkowka" target="_blank" rel="noopener">Kod na GitHubie</a>
   </footer>
 </div>
 
 <script>
 (function () {
+  // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
+  const APP_VERSION = "1.15";
+  const APP_DATE = "18.10.2026";
+  document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
+
   const ZSEQ = [1, 6, 5, 4, 3, 2];                       // kolejność przejść zgodnie z ruchem wskazówek zegara
   const ORDER = ["S", "MB2", "OH2", "OPP", "MB1", "OH1"]; // zawodnicy w strefach 1,6,5,4,3,2 w ustawieniu 1
   const ROLES = {
@@ -1011,6 +1017,7 @@ html { touch-action: pan-x pan-y; }
       aplikacja: "Rotacje w siatkówce",
       format: 1,
       autor_aplikacji: AUTHOR,
+      wersja_aplikacji: APP_VERSION,
       adres: "https://wojtasem.github.io/rotacje-siatkowka/",
       data_eksportu: new Date().toISOString(),
       przepisy: "FIVB 2025–2028",
@@ -1173,7 +1180,7 @@ html { touch-action: pan-x pan-y; }
     ctx.fillStyle = PRINT.ink; ctx.font = `700 ${22 * U}px "Barlow Condensed", Arial, sans-serif`;
     ctx.fillText("Rotacje w siatkówce – zestawienie ustawień", M, M + 16 * U);
     ctx.fillStyle = PRINT.muted; ctx.font = `400 ${9 * U}px Barlow, Arial, sans-serif`;
-    ctx.fillText(`Przepisy FIVB 2025–2028 · libero ${state.libero ? "włączone" : "wyłączone"} · wygenerowano ${when} · autor aplikacji: ${AUTHOR}`, M, M + 30 * U);
+    ctx.fillText(`Przepisy FIVB 2025–2028 · libero ${state.libero ? "włączone" : "wyłączone"} · wygenerowano ${when} · wersja ${APP_VERSION} · autor aplikacji: ${AUTHOR}`, M, M + 30 * U);
     ctx.textAlign = "right"; ctx.fillText(`Strona ${pageNo} z ${pages}`, cw - M, M + 16 * U); ctx.textAlign = "left";
     ctx.strokeStyle = "#D3DBE3"; ctx.lineWidth = U; ctx.beginPath(); ctx.moveTo(M, M + 38 * U); ctx.lineTo(cw - M, M + 38 * U); ctx.stroke();
 
