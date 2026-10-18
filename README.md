@@ -27,16 +27,20 @@ według [przepisów FIVB 2025–2028](https://www.fivb.com/wp-content/uploads/20
 
 ## Ustawienia
 
-- **Widok ekranu głównego** – każdy element (opis, legenda, przyciski edycji, przyciski
-  zapisu i wczytania pliku, karta zawodnika, lista zależności, podpowiedź, karty Opcje
-  i Zasady, stopka) można pokazać lub ukryć. Domyślnie działa widok uproszczony; przycisk „Pokaż wszystko” włącza
-  wszystkie elementy. Werdykt, boisko i „Zagraj piłkę” są widoczne zawsze.
-- **Boisko** – libero, numery stref, drogi do pozycji w grze.
-- **Nazwa zapisywanego pliku** – własna nazwa oraz osobno: dodaj datę (RRRR-MM-DD)
-  i dodaj godzinę (GG-MM-SS). Znaki niedozwolone w nazwach plików są zamieniane na `-`.
-  Same przyciski „Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF” są na ekranie
-  głównym pod przyciskami boiska (można je ukryć; skróty klawiszowe działają zawsze).
-- **Reset** – wzorcowe pozycje i domyślne opcje boiska (widok i nazwa pliku zostają).
+Okno „Ustawienia” (przycisk ⚙ w nagłówku lub klawisz `U`) ma kategorie:
+
+| Kategoria | Co można ustawić |
+|---|---|
+| Nagłówek i stopka | opis pod tytułem, przycisk „Skróty klawiszowe”, stopka |
+| Przyciski pod boiskiem | „Wzorcowe ustawienie / Ustaw w strefach”, „Cofnij / Ponów ruch”, „Resetuj wszystkie ustawienia”, przyciski zapisu i wczytania pliku |
+| Panel obok boiska | karta zawodnika, lista zależności, podpowiedź nad listą |
+| Boisko | libero, numery stref, drogi do pozycji w grze, legenda kolorów zawodników |
+| Dodatkowe karty | karta „Zasady ustawienia” |
+| Nazwa zapisywanego pliku | własna nazwa oraz osobno: dodaj datę (RRRR-MM-DD) i dodaj godzinę (GG-MM-SS); znaki niedozwolone w nazwach plików są zamieniane na `-` |
+
+Przyciski „Widok domyślny” i „Pokaż wszystko” ustawiają widoczność wszystkich elementów naraz.
+Werdykt, boisko i „Zagraj piłkę” są widoczne zawsze, a skróty klawiszowe działają także
+przy ukrytych przyciskach.
 
 Wybory zapisują się w przeglądarce na danym urządzeniu.
 

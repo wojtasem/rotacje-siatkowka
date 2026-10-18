@@ -216,10 +216,6 @@ html { touch-action: pan-x pan-y; }
 .muted { color: var(--muted); }
 .num { font-variant-numeric: tabular-nums; }
 
-.opts label { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; font-size: 14.5px; cursor: pointer; }
-.opts input { margin-top: 2px; accent-color: var(--accent); width: 20px; height: 20px; flex: none; }
-.opts small { display: block; color: var(--muted); font-size: 12.5px; }
-.opts .btn { margin-top: 6px; width: 100%; }
 
 .rules summary { cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: 18px; letter-spacing: .03em; text-transform: uppercase; min-height: 28px; }
 .rules ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
@@ -229,11 +225,9 @@ html { touch-action: pan-x pan-y; }
 .app-lower { margin-top: 16px; }
 @media (min-width: 980px) { .app-lower { margin-top: 20px; } }
 .lower-left { min-width: 0; }
-@media (max-width: 979px) { .lower-right { order: -1; } }
 /* gdy widoczna jest tylko jedna strona dolnego rzędu, zajmuje całą szerokość */
 @media (min-width: 980px) {
   .app-lower.one-col { grid-template-columns: minmax(0, 1fr); }
-  .app-lower.one-col .lower-right { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
 }
 
 /* przyciski zapisu pod przyciskami boiska */
@@ -350,23 +344,14 @@ html { touch-action: pan-x pan-y; }
     </div>
 
     <section class="set-sec">
-      <h3>Widok ekranu głównego</h3>
-      <p class="set-note">Wybierz, co ma być widoczne. Werdykt, boisko i przycisk „Zagraj piłkę” są widoczne zawsze.</p>
+      <p class="set-note">Wybierz, co ma być widoczne na ekranie głównym. Werdykt, boisko i przycisk „Zagraj piłkę” są widoczne zawsze.</p>
       <div class="set-presets">
-        <button type="button" class="btn" id="view-slim">Widok uproszczony</button>
+        <button type="button" class="btn" id="view-slim">Widok domyślny</button>
         <button type="button" class="btn" id="view-all">Pokaż wszystko</button>
       </div>
-      <div class="set-grid" id="view-list"></div>
     </section>
 
-    <section class="set-sec">
-      <h3>Boisko</h3>
-      <div class="set-grid">
-        <label class="set-item"><input type="checkbox" data-opt="libero"> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
-        <label class="set-item"><input type="checkbox" data-opt="zones"> <span>Numery stref na boisku</span></label>
-        <label class="set-item"><input type="checkbox" data-opt="arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
-      </div>
-    </section>
+    <div id="set-groups"></div>
 
     <section class="set-sec">
       <h3>Nazwa zapisywanego pliku</h3>
@@ -380,12 +365,6 @@ html { touch-action: pan-x pan-y; }
       </div>
       <p class="set-note">Przykład: <code id="fn-preview"></code></p>
       <p class="set-note" id="fn-warn" hidden>Bez daty i godziny kolejne zapisy będą miały tę samą nazwę. Przeglądarka doda wtedy do nazwy numer, np. (1).</p>
-    </section>
-
-    <section class="set-sec">
-      <h3>Reset</h3>
-      <p class="set-note">Przywraca wzorcowe pozycje we wszystkich ustawieniach i domyślne opcje boiska. Widok ekranu i nazwa pliku zostają bez zmian.</p>
-      <button type="button" class="btn danger" data-action="reset" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
     </section>
   </dialog>
 
@@ -531,7 +510,7 @@ html { touch-action: pan-x pan-y; }
     </aside>
   </main>
 
-  <section class="app app-lower" id="lower" aria-label="Zasady, opcje i plik z ustawieniami">
+  <section class="app app-lower one-col" id="lower" aria-label="Zasady ustawienia">
     <div class="lower-left" data-view="rules">
         <details class="card rules" id="rules" open>
           <summary>Zasady ustawienia · FIVB 2025–2028</summary>
@@ -548,15 +527,6 @@ html { touch-action: pan-x pan-y; }
           <p class="note">O pozycji decydują stopy na podłożu. Liczy się ostatni kontakt z podłogą. Wystarczy, że część stopy jest na równi lub dalej od siatki (bliżej linii bocznej) niż stopa drugiego zawodnika. W aplikacji punktem odniesienia jest środek znacznika, więc przy różnicy kilku centymetrów decyduje rzeczywiste ustawienie stóp.</p>
         </details>
     </div>
-    <div class="lower-right panel" id="lower-right">
-        <div class="card opts" data-view="opts">
-          <h2>Opcje</h2>
-          <label><input type="checkbox" data-opt="libero"> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
-          <label><input type="checkbox" data-opt="zones"> <span>Numery stref na boisku</span></label>
-          <label><input type="checkbox" data-opt="arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
-          <button type="button" class="btn danger" data-action="reset" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
-        </div>
-    </div>
   </section>
   <input type="file" id="import-file" accept=".json,application/json" hidden>
 
@@ -571,7 +541,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.20";
+  const APP_VERSION = "1.21";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -619,19 +589,31 @@ html { touch-action: pan-x pan-y; }
 
   // elementy ekranu głównego, które można ukryć w Ustawieniach; slim = widok uproszczony (domyślny)
   const VIEW_ITEMS = [
-    { key: "lede",    slim: false, label: "Opis pod tytułem" },
+    { key: "lede",    slim: true,  label: "Opis pod tytułem" },
     { key: "keys",    slim: true,  label: "Przycisk „Skróty klawiszowe”", desc: "tylko na komputerze z myszą" },
-    { key: "layout",  slim: true,  label: "Przyciski „Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty klawiszowe W i S działają zawsze" },
-    { key: "history", slim: false, label: "Przyciski „Cofnij ruch” i „Ponów ruch”", desc: "skróty Ctrl+Z i Ctrl+Y działają zawsze" },
-    { key: "reset",   slim: true,  label: "Przycisk „Resetuj wszystkie ustawienia” obok „Zagraj piłkę”", desc: "reset jest też w Ustawieniach i pod klawiszem R" },
-    { key: "filebar", slim: true,  label: "Przyciski „Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF”", desc: "nazwę pliku ustawisz niżej; skróty Ctrl+S, Ctrl+O i P działają zawsze" },
-    { key: "legend",  slim: false, label: "Legenda kolorów pod boiskiem" },
+    { key: "footer",  slim: true,  label: "Stopka (autor, wersja)" },
+    { key: "layout",  slim: true,  label: "„Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty W i S działają zawsze" },
+    { key: "history", slim: false, label: "„Cofnij ruch” i „Ponów ruch”", desc: "skróty Ctrl+Z i Ctrl+Y działają zawsze" },
+    { key: "reset",   slim: true,  label: "„Resetuj wszystkie ustawienia” obok „Zagraj piłkę”", desc: "klawisz R działa zawsze" },
+    { key: "filebar", slim: true,  label: "„Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF”", desc: "skróty Ctrl+S, Ctrl+O i P działają zawsze" },
     { key: "player",  slim: true,  label: "Karta zaznaczonego zawodnika" },
     { key: "rels",    slim: true,  label: "Lista „Zależności w tym ustawieniu”" },
     { key: "hint",    slim: false, label: "Podpowiedź nad listą zależności" },
-    { key: "opts",    slim: false, label: "Karta „Opcje” boiska", desc: "te same opcje są w Ustawieniach" },
-    { key: "rules",   slim: false, label: "Karta „Zasady ustawienia”" },
-    { key: "footer",  slim: true,  label: "Stopka (autor, wersja)" }
+    { key: "legend",  slim: true,  label: "Legenda kolorów zawodników pod boiskiem" },
+    { key: "rules",   slim: false, label: "Karta „Zasady ustawienia” pod boiskiem" }
+  ];
+  // kategorie w oknie Ustawień; „opts” to opcje boiska (stan aplikacji, nie widoczność)
+  const OPT_ITEMS = [
+    { opt: "libero", label: "Libero w drugiej linii", desc: "zastępuje środkowego z tyłu; gdy środkowy zagrywa ze strefy 1, libero schodzi" },
+    { opt: "zones",  label: "Numery stref na boisku" },
+    { opt: "arrows", label: "Droga do pozycji w grze", desc: "strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce" }
+  ];
+  const SETTINGS_GROUPS = [
+    { title: "Nagłówek i stopka", view: ["lede", "keys", "footer"] },
+    { title: "Przyciski pod boiskiem", view: ["layout", "history", "reset", "filebar"] },
+    { title: "Panel obok boiska", view: ["player", "rels", "hint"] },
+    { title: "Boisko", opts: ["libero", "zones", "arrows"], view: ["legend"] },
+    { title: "Dodatkowe karty", view: ["rules"] }
   ];
   const viewPreset = (all) => Object.fromEntries(VIEW_ITEMS.map((v) => [v.key, all || v.slim]));
   const DEFAULT_FILE_BASE = "rotacje-ustawienia";
@@ -661,12 +643,14 @@ html { touch-action: pan-x pan-y; }
     if (s && s.view && !(s.viewV >= 2)) state.view.layout = true;
     // 1.19: przyciski „Cofnij / Ponów ruch” domyślnie ukryte – jednorazowo ukrywamy je także po wcześniejszych wersjach
     if (s && s.view && !(s.viewV >= 3)) state.view.history = false;
+    // 1.21: opis pod tytułem i legenda zawodników domyślnie widoczne
+    if (s && s.view && !(s.viewV >= 4)) { state.view.lede = true; state.view.legend = true; }
   } catch (_) {}
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify({
         pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows,
-        view: state.view, viewV: 3, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime
+        view: state.view, viewV: 4, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime
       }));
     } catch (_) {}
   }
@@ -1432,27 +1416,30 @@ html { touch-action: pan-x pan-y; }
 
   /* ---------- ustawienia: widok ekranu i nazwa pliku ---------- */
   const settingsDlg = document.getElementById("settings");
-  const viewList = document.getElementById("view-list");
-  viewList.innerHTML = VIEW_ITEMS.map((v) =>
-    `<label class="set-item"><input type="checkbox" data-view-opt="${v.key}"> <span>${v.label}${v.desc ? `<small>${v.desc}</small>` : ""}</span></label>`).join("");
+  const groupsEl = document.getElementById("set-groups");
+  const VIEW_BY_KEY = Object.fromEntries(VIEW_ITEMS.map((v) => [v.key, v]));
+  const OPT_BY_KEY = Object.fromEntries(OPT_ITEMS.map((o) => [o.opt, o]));
+  const setItem = (attr, label, desc) => `<label class="set-item"><input type="checkbox" ${attr}> <span>${label}${desc ? `<small>${desc}</small>` : ""}</span></label>`;
+  groupsEl.innerHTML = SETTINGS_GROUPS.map((g) => `<section class="set-sec"><h3>${g.title}</h3><div class="set-grid">${
+    (g.opts || []).map((k) => setItem(`data-opt="${k}"`, OPT_BY_KEY[k].label, OPT_BY_KEY[k].desc)).join("") +
+    (g.view || []).map((k) => setItem(`data-view-opt="${k}"`, VIEW_BY_KEY[k].label, VIEW_BY_KEY[k].desc)).join("")
+  }</div></section>`).join("");
+  groupsEl.querySelectorAll("[data-opt]").forEach((inp) => { inp.onchange = () => setOpt(inp.dataset.opt, inp.checked); });
+  syncOpts();
 
   // pokazuje lub ukrywa elementy ekranu głównego zgodnie z ustawieniami
   function applyViewPrefs() {
     document.querySelectorAll("[data-view]").forEach((el) => { el.hidden = !state.view[el.dataset.view]; });
-    const lower = document.getElementById("lower");
-    const rightVisible = state.view.opts;
-    document.getElementById("lower-right").hidden = !rightVisible;
-    lower.hidden = !state.view.rules && !rightVisible;
-    lower.classList.toggle("one-col", !(state.view.rules && rightVisible));
-    viewList.querySelectorAll("[data-view-opt]").forEach((inp) => { inp.checked = !!state.view[inp.dataset.viewOpt]; });
+    document.getElementById("lower").hidden = !state.view.rules;
+    groupsEl.querySelectorAll("[data-view-opt]").forEach((inp) => { inp.checked = !!state.view[inp.dataset.viewOpt]; });
     // bez przycisku resetu „Zagraj piłkę” zajmuje cały rząd
     document.getElementById("play").classList.toggle("wide", !state.view.reset);
   }
-  viewList.addEventListener("change", (e) => {
+  groupsEl.addEventListener("change", (e) => {
     const k = e.target.dataset.viewOpt; if (!k) return;
     state.view[k] = e.target.checked; save(); applyViewPrefs(); renderPanel();
   });
-  document.getElementById("view-slim").onclick = () => { state.view = viewPreset(false); save(); applyViewPrefs(); renderPanel(); toast("Widok uproszczony"); };
+  document.getElementById("view-slim").onclick = () => { state.view = viewPreset(false); save(); applyViewPrefs(); renderPanel(); toast("Przywrócono widok domyślny"); };
   document.getElementById("view-all").onclick = () => { state.view = viewPreset(true); save(); applyViewPrefs(); renderPanel(); toast("Widoczne są wszystkie elementy"); };
 
   const fnBase = document.getElementById("fn-base"), fnDate = document.getElementById("fn-date"), fnTime = document.getElementById("fn-time");
