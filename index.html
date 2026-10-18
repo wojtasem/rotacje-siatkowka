@@ -234,9 +234,15 @@ html { touch-action: pan-x pan-y; }
   .app-lower.one-col .lower-right { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
 }
 
+/* przyciski zapisu pod przyciskami boiska */
+.filebar { display: flex; flex-direction: column; gap: 4px; }
+.filebar-buttons { display: grid; gap: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.filebar .btn { min-height: 40px; padding: 8px 10px; font-size: 13.5px; }
+.filebar .file-msg { margin: 0; }
+.filebar .file-msg:empty { display: none; }
+@media (max-width: 420px) { .filebar .btn { font-size: 12.5px; padding: 8px 6px; gap: 4px; } }
+
 /* plik z ustawieniami i stopka */
-.file-card p.muted { margin: 0 0 10px; font-size: 14px; max-width: 60ch; }
-.file-actions { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .file-msg { margin: 8px 0 0; font-size: 13.5px; min-height: 1.2em; }
 .file-msg.ok { color: var(--ok); }
 .file-msg.bad { color: var(--bad); }
@@ -283,7 +289,6 @@ html { touch-action: pan-x pan-y; }
   border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; max-width: 420px;
 }
 .set-field input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
-.sheet .file-actions { margin-top: 4px; }
 .help-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
 .help-head h2 { margin: 0; font-family: var(--f-display); font-size: 26px; }
 .help-grid { display: grid; gap: 8px 28px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
@@ -364,7 +369,8 @@ html { touch-action: pan-x pan-y; }
     </section>
 
     <section class="set-sec">
-      <h3>Plik z ustawieniami</h3>
+      <h3>Nazwa zapisywanego pliku</h3>
+      <p class="set-note">Dotyczy plików z przycisków „Zapisz do pliku” i „Zapisz PDF” na ekranie głównym.</p>
       <label class="set-field" for="fn-base">Nazwa pliku
         <input type="text" id="fn-base" maxlength="80" autocomplete="off" spellcheck="false" placeholder="rotacje-ustawienia">
       </label>
@@ -374,12 +380,6 @@ html { touch-action: pan-x pan-y; }
       </div>
       <p class="set-note">Przykład: <code id="fn-preview"></code></p>
       <p class="set-note" id="fn-warn" hidden>Bez daty i godziny kolejne zapisy będą miały tę samą nazwę. Przeglądarka doda wtedy do nazwy numer, np. (1).</p>
-      <div class="file-actions">
-        <button type="button" class="btn primary" data-action="export"><span class="k">⭳</span> Zapisz do pliku</button>
-        <button type="button" class="btn" data-action="import"><span class="k">⭱</span> Wczytaj z pliku</button>
-        <button type="button" class="btn" data-action="pdf"><span class="k">⎙</span> Zapisz PDF</button>
-      </div>
-      <p class="file-msg" role="status" aria-live="polite"></p>
     </section>
 
     <section class="set-sec">
@@ -501,6 +501,15 @@ html { touch-action: pan-x pan-y; }
         <button type="button" class="btn" id="base" data-view="layout">Ustaw w strefach</button>
       </div>
 
+      <div class="filebar" data-view="filebar" role="group" aria-label="Plik z ustawieniami">
+        <div class="filebar-buttons">
+          <button type="button" class="btn" data-action="export" title="Zapisz pozycje ze wszystkich ustawień i opcje do pliku JSON (Ctrl+S)"><span class="k">⭳</span> Zapisz do pliku</button>
+          <button type="button" class="btn" data-action="import" title="Wczytaj ustawienia z pliku JSON (Ctrl+O)"><span class="k">⭱</span> Wczytaj z pliku</button>
+          <button type="button" class="btn" data-action="pdf" title="Zestawienie wszystkich ustawień do wydruku (P)"><span class="k">⎙</span> Zapisz PDF</button>
+        </div>
+        <p class="file-msg" role="status" aria-live="polite"></p>
+      </div>
+
       <div class="legend" data-view="legend">
         <span><i class="chip k-s">R</i> rozgrywający</span>
         <span><i class="chip k-oh">P</i> przyjmujący</span>
@@ -546,16 +555,6 @@ html { touch-action: pan-x pan-y; }
           <label><input type="checkbox" data-opt="arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
           <button type="button" class="btn danger" data-action="reset" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
         </div>
-        <div class="card file-card" data-view="file">
-          <h2>Plik z ustawieniami</h2>
-          <p class="muted">Zapisz pozycje zawodników ze wszystkich 6 ustawień (przyjęcie i zagrywka) oraz opcje do pliku. Wczytasz go na innym urządzeniu albo prześlesz drugiemu trenerowi. PDF to zestawienie do wydruku z boiskami i oceną każdego ustawienia. Nazwę pliku ustawisz w Ustawieniach.</p>
-          <div class="file-actions">
-            <button type="button" class="btn primary" data-action="export"><span class="k">⭳</span> Zapisz do pliku</button>
-            <button type="button" class="btn" data-action="import"><span class="k">⭱</span> Wczytaj z pliku</button>
-            <button type="button" class="btn" data-action="pdf"><span class="k">⎙</span> Zapisz PDF</button>
-          </div>
-          <p class="file-msg" role="status" aria-live="polite"></p>
-        </div>
     </div>
   </section>
   <input type="file" id="import-file" accept=".json,application/json" hidden>
@@ -571,7 +570,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.17";
+  const APP_VERSION = "1.18";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -622,13 +621,13 @@ html { touch-action: pan-x pan-y; }
     { key: "lede",    slim: false, label: "Opis pod tytułem" },
     { key: "keys",    slim: true,  label: "Przycisk „Skróty klawiszowe”", desc: "tylko na komputerze z myszą" },
     { key: "history", slim: true,  label: "Przyciski „Cofnij ruch” i „Ponów ruch”" },
-    { key: "layout",  slim: false, label: "Przyciski „Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty klawiszowe W i S działają zawsze" },
+    { key: "layout",  slim: true,  label: "Przyciski „Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty klawiszowe W i S działają zawsze" },
+    { key: "filebar", slim: true,  label: "Przyciski „Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF”", desc: "nazwę pliku ustawisz niżej; skróty Ctrl+S, Ctrl+O i P działają zawsze" },
     { key: "legend",  slim: false, label: "Legenda kolorów pod boiskiem" },
     { key: "player",  slim: true,  label: "Karta zaznaczonego zawodnika" },
     { key: "rels",    slim: true,  label: "Lista „Zależności w tym ustawieniu”" },
     { key: "hint",    slim: false, label: "Podpowiedź nad listą zależności" },
     { key: "opts",    slim: false, label: "Karta „Opcje” boiska", desc: "te same opcje są w Ustawieniach" },
-    { key: "file",    slim: false, label: "Karta „Plik z ustawieniami”", desc: "zapis, wczytanie i PDF są też w Ustawieniach" },
     { key: "rules",   slim: false, label: "Karta „Zasady ustawienia”" },
     { key: "footer",  slim: true,  label: "Stopka (autor, wersja)" }
   ];
@@ -655,12 +654,15 @@ html { touch-action: pan-x pan-y; }
     if (s && typeof s.fileBase === "string") state.fileBase = s.fileBase;
     if (s && typeof s.fileDate === "boolean") state.fileDate = s.fileDate;
     if (s && typeof s.fileTime === "boolean") state.fileTime = s.fileTime;
+    // 1.18: przyciski „Wzorcowe ustawienie / Ustaw w strefach” domyślnie widoczne – jednorazowo włączamy je
+    // także u osób, którym wersja 1.17 zapisała je jako ukryte
+    if (s && s.view && !(s.viewV >= 2)) state.view.layout = true;
   } catch (_) {}
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify({
         pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows,
-        view: state.view, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime
+        view: state.view, viewV: 2, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime
       }));
     } catch (_) {}
   }
@@ -1119,6 +1121,8 @@ html { touch-action: pan-x pan-y; }
   // komunikat pokazujemy w karcie „Plik” i w Ustawieniach
   function showFileMsg(text, ok) {
     document.querySelectorAll(".file-msg").forEach((el) => { el.textContent = text; el.className = "file-msg " + (ok ? "ok" : "bad"); });
+    // gdy przyciski zapisu są ukryte (zapis skrótem klawiszowym), komunikat pokazujemy w dymku
+    if (!state.view.filebar && !/…$/.test(text)) toast(text);
   }
   // data i czas zapisu: w nazwie pliku bez dwukropków (Windows ich nie dopuszcza), w treści czytelnie
   const p2 = (x) => String(x).padStart(2, "0");
@@ -1432,7 +1436,7 @@ html { touch-action: pan-x pan-y; }
   function applyViewPrefs() {
     document.querySelectorAll("[data-view]").forEach((el) => { el.hidden = !state.view[el.dataset.view]; });
     const lower = document.getElementById("lower");
-    const rightVisible = state.view.opts || state.view.file;
+    const rightVisible = state.view.opts;
     document.getElementById("lower-right").hidden = !rightVisible;
     lower.hidden = !state.view.rules && !rightVisible;
     lower.classList.toggle("one-col", !(state.view.rules && rightVisible));
