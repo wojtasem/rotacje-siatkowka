@@ -301,6 +301,14 @@ html { touch-action: pan-x pan-y; }
 .set-note { margin: 0 0 10px; font-size: 13.5px; color: var(--muted); max-width: 70ch; }
 .set-note code { font-size: 13px; color: var(--ink); background: var(--bg); padding: 1px 6px; border-radius: 5px; word-break: break-all; }
 .set-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.view-mode-label { font-family: var(--f-display); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 4px 0 6px; }
+.seg-modes { display: grid; grid-template-columns: 1fr 1fr 1fr 1.45fr; gap: 0; }
+.seg-modes .btn { border-radius: 0; margin-left: -1px; min-height: 42px; padding-inline: 6px; }
+.seg-modes .btn:first-child { border-radius: 9px 0 0 9px; margin-left: 0; }
+.seg-modes .btn:last-child { border-radius: 0 9px 9px 0; }
+.seg-modes .btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); position: relative; z-index: 1; }
+.seg-modes .btn:disabled { opacity: .45; }
+@media (max-width: 420px) { .seg-modes .btn { font-size: 12.5px; } }
 .set-grid { display: grid; gap: 2px 20px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
 .set-item { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; font-size: 14.5px; cursor: pointer; }
 .set-item input { margin-top: 2px; accent-color: var(--accent); width: 20px; height: 20px; flex: none; }
@@ -368,11 +376,13 @@ html { touch-action: pan-x pan-y; }
     </div>
 
     <section class="set-sec">
-      <p class="set-note">Wybierz, co ma być widoczne na ekranie głównym. Boisko z werdyktem u góry jest widoczne zawsze. „Widok minimalny” zostawia tylko boisko oraz przyciski „Wzorcowe ustawienie”, „Ustaw w strefach” i „Resetuj wszystkie ustawienia”, a na komputerze także werdykt i kartę zaznaczonego zawodnika.</p>
-      <div class="set-presets">
-        <button type="button" class="btn" id="view-slim">Widok domyślny</button>
-        <button type="button" class="btn" id="view-min">Widok minimalny</button>
-        <button type="button" class="btn" id="view-all">Pokaż wszystko</button>
+      <p class="set-note">Wybierz gotowy widok albo zmień pojedyncze opcje poniżej – wtedy widok zmieni się na „Niestandardowy” i zostanie zapamiętany. Boisko z werdyktem u góry jest widoczne zawsze. „Widok minimalny” zostawia tylko boisko oraz przyciski „Wzorcowe ustawienie”, „Ustaw w strefach” i „Resetuj wszystkie ustawienia”, a na komputerze także werdykt i kartę zaznaczonego zawodnika.</p>
+      <div class="view-mode-label" id="view-mode-label">Obecny widok</div>
+      <div class="set-presets seg-modes" role="group" aria-labelledby="view-mode-label">
+        <button type="button" class="btn" id="view-slim" aria-pressed="false">Domyślny</button>
+        <button type="button" class="btn" id="view-min" aria-pressed="false">Minimalny</button>
+        <button type="button" class="btn" id="view-all" aria-pressed="false">Wszystko</button>
+        <button type="button" class="btn" id="view-custom" aria-pressed="false" title="Twój własny układ – zapamiętywany przy każdej ręcznej zmianie">Niestandardowy</button>
       </div>
     </section>
 
@@ -573,7 +583,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.31";
+  const APP_VERSION = "1.32";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -662,14 +672,14 @@ html { touch-action: pan-x pan-y; }
   // warianty widoku: "default" (domyślny), "min" (minimalny), "all" (wszystko)
   // na komputerze widok minimalny zostawia też werdykt i kartę zawodnika obok boiska (minDesktop)
   const isDesktop = () => window.matchMedia("(min-width: 980px)").matches;
-  const viewPreset = (mode) => Object.fromEntries(VIEW_ITEMS.map((v) => [v.key,
-    mode === "all" ? true : mode === "min" ? !!v.min || (!!v.minDesktop && isDesktop()) : v.slim]));
+  const viewPreset = (mode, desktop = isDesktop()) => Object.fromEntries(VIEW_ITEMS.map((v) => [v.key,
+    mode === "all" ? true : mode === "min" ? !!v.min || (!!v.minDesktop && desktop) : v.slim]));
   const DEFAULT_FILE_BASE = "rotacje-ustawienia";
 
   const state = {
     k: 0, phase: "recv", inPlay: false, playPos: null, pos: allPresets(), libero: true, zones: true, arrows: false, sel: null, hov: null,
     view: viewPreset("default"), fileBase: DEFAULT_FILE_BASE, fileDate: true, fileTime: true,
-    names: { S: "", OH1: "", OH2: "", MB1: "", MB2: "", OPP: "", L: "" }, showNames: true
+    names: { S: "", OH1: "", OH2: "", MB1: "", MB2: "", OPP: "", L: "" }, showNames: true, customView: null
   };
 
   /* ---------- zapamiętywanie w przeglądarce ---------- */
@@ -689,6 +699,7 @@ html { touch-action: pan-x pan-y; }
     if (s && typeof s.fileTime === "boolean") state.fileTime = s.fileTime;
     if (s && s.names && typeof s.names === "object") for (const k in state.names) if (typeof s.names[k] === "string") state.names[k] = s.names[k].slice(0, 20);
     if (s && typeof s.showNames === "boolean") state.showNames = s.showNames;
+    if (s && s.customView && typeof s.customView === "object" && s.customView.view) state.customView = s.customView;
     // 1.18: przyciski „Wzorcowe ustawienie / Ustaw w strefach” domyślnie widoczne – jednorazowo włączamy je
     // także u osób, którym wersja 1.17 zapisała je jako ukryte
     if (s && s.view && !(s.viewV >= 2)) state.view.layout = true;
@@ -702,7 +713,7 @@ html { touch-action: pan-x pan-y; }
       localStorage.setItem(KEY, JSON.stringify({
         pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows,
         view: state.view, viewV: 4, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime,
-        names: state.names, showNames: state.showNames
+        names: state.names, showNames: state.showNames, customView: state.customView
       }));
     } catch (_) {}
   }
@@ -1116,6 +1127,7 @@ html { touch-action: pan-x pan-y; }
   function setOpt(name, value) {
     state[name] = value; syncOpts(); save();
     if (name === "libero") render(); else renderCourt();
+    if (typeof updateViewMode === "function") updateViewMode();
   }
   document.querySelectorAll("[data-opt]").forEach((inp) => { inp.onchange = () => setOpt(inp.dataset.opt, inp.checked); });
 
@@ -1524,6 +1536,32 @@ html { touch-action: pan-x pan-y; }
     // bez przycisku resetu „Zagraj piłkę” zajmuje cały rząd
     document.getElementById("play").classList.toggle("wide", !state.view.reset);
     document.getElementById("reset-btn").classList.toggle("wide", !state.view.play);
+    updateViewMode();
+  }
+
+  // który wariant widoku jest teraz włączony; widok liczy się razem z numerami stref, drogami i imionami
+  const VIEW_OPTS = ["zones", "arrows", "showNames"];
+  const presetOpts = (mode) => ({ zones: mode !== "min", arrows: mode === "all", showNames: mode !== "min" });
+  const sameView = (view, opts, mode, desktop) => {
+    const pv = viewPreset(mode, desktop), po = presetOpts(mode);
+    return VIEW_ITEMS.every((v) => !!view[v.key] === pv[v.key]) && VIEW_OPTS.every((k) => !!opts[k] === po[k]);
+  };
+  function detectViewMode() {
+    if (sameView(state.view, state, "default")) return "default";
+    if (sameView(state.view, state, "all")) return "all";
+    if (sameView(state.view, state, "min", true) || sameView(state.view, state, "min", false)) return "min";
+    return "custom";
+  }
+  const MODE_BUTTONS = { default: "view-slim", min: "view-min", all: "view-all", custom: "view-custom" };
+  function updateViewMode() {
+    const mode = detectViewMode();
+    // każda ręczna zmiana zapisuje się jako układ niestandardowy
+    if (mode === "custom") {
+      state.customView = { view: { ...state.view }, zones: state.zones, arrows: state.arrows, showNames: state.showNames };
+      save();
+    }
+    for (const [m, id] of Object.entries(MODE_BUTTONS)) document.getElementById(id).setAttribute("aria-pressed", String(m === mode));
+    document.getElementById("view-custom").disabled = mode !== "custom" && !state.customView;
   }
   groupsEl.addEventListener("change", (e) => {
     const k = e.target.dataset.viewOpt; if (!k) return;
@@ -1537,11 +1575,18 @@ html { touch-action: pan-x pan-y; }
     state.arrows = mode === "all";
     state.showNames = mode !== "min";
     syncOpts(); save(); applyViewPrefs(); render();
-    toast({ default: "Przywrócono widok domyślny", min: "Widok minimalny", all: "Widoczne są wszystkie elementy" }[mode]);
+    toast({ default: "Widok domyślny", min: "Widok minimalny", all: "Widoczne są wszystkie elementy" }[mode]);
   }
   document.getElementById("view-slim").onclick = () => applyViewPreset("default");
   document.getElementById("view-min").onclick = () => applyViewPreset("min");
   document.getElementById("view-all").onclick = () => applyViewPreset("all");
+  document.getElementById("view-custom").onclick = () => {
+    const c = state.customView; if (!c) return;
+    state.view = { ...viewPreset("default"), ...c.view };
+    for (const k of VIEW_OPTS) if (typeof c[k] === "boolean") state[k] = c[k];
+    syncOpts(); save(); applyViewPrefs(); render();
+    toast("Przywrócono Twój widok niestandardowy");
+  };
 
   const fnBase = document.getElementById("fn-base"), fnDate = document.getElementById("fn-date"), fnTime = document.getElementById("fn-time");
   function updateFilePrefs() {

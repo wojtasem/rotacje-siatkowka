@@ -39,6 +39,11 @@ Okno „Ustawienia” (przycisk ⚙ w nagłówku lub klawisz `U`) ma kategorie:
 | Zawodnicy | opcjonalne imiona dla 7 osób (rozgrywający, przyjmujący 1 i 2, środkowy 1 i 2, atakujący, libero) oraz „Pokaż imiona na boisku” |
 | Nazwa zapisywanego pliku | własna nazwa oraz osobno: dodaj datę (RRRR-MM-DD) i dodaj godzinę (GG-MM-SS); znaki niedozwolone w nazwach plików są zamieniane na `-` |
 
+Na górze okna widać, który wariant widoku jest teraz włączony: **Domyślny**, **Minimalny**,
+**Wszystko** albo **Niestandardowy**. Każda ręczna zmiana opcji widoku (także numerów stref,
+dróg do pozycji i imion na boisku) przełącza na „Niestandardowy” i zapamiętuje ten układ –
+przycisk „Niestandardowy” przywraca go po przejściu na inny wariant. Libero nie wpływa na wariant.
+
 Gotowe warianty widoku:
 
 - **Widok domyślny** – większość elementów widoczna, numery stref włączone, drogi do pozycji wyłączone.
