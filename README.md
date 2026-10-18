@@ -22,10 +22,27 @@ według [przepisów FIVB 2025–2028](https://www.fivb.com/wp-content/uploads/20
 - Cofanie i ponawianie ruchu, zapis ustawień w przeglądarce, układ dopasowany do smartfonów.
 - Zapis wszystkich ustawień do pliku JSON i wczytanie ich z pliku (np. przeniesienie
   z komputera na telefon albo przesłanie innemu trenerowi).
+- Okno „Ustawienia” (przycisk ⚙ lub `U`): wybór elementów widocznych na ekranie głównym,
+  opcje boiska, nazwa pliku i reset.
+
+## Ustawienia
+
+- **Widok ekranu głównego** – każdy element (opis, legenda, przyciski edycji, karta
+  zawodnika, lista zależności, podpowiedź, karty Opcje / Plik / Zasady, stopka) można
+  pokazać lub ukryć. Domyślnie działa widok uproszczony; przycisk „Pokaż wszystko” włącza
+  wszystkie elementy. Werdykt, boisko i „Zagraj piłkę” są widoczne zawsze.
+- **Boisko** – libero, numery stref, drogi do pozycji w grze.
+- **Plik z ustawieniami** – własna nazwa pliku oraz osobno: dodaj datę (RRRR-MM-DD)
+  i dodaj godzinę (GG-MM-SS). Znaki niedozwolone w nazwach plików są zamieniane na `-`.
+  Tu są też przyciski zapisu, wczytania i PDF.
+- **Reset** – wzorcowe pozycje i domyślne opcje boiska (widok i nazwa pliku zostają).
+
+Wybory zapisują się w przeglądarce na danym urządzeniu.
 
 ## Plik z ustawieniami
 
-Przycisk „Zapisz do pliku” (lub `Ctrl+S`) tworzy plik `rotacje-ustawienia-RRRR-MM-DD_GG-MM-SS.json`:
+Przycisk „Zapisz do pliku” (lub `Ctrl+S`) tworzy plik o nazwie ustawionej w Ustawieniach,
+domyślnie `rotacje-ustawienia_RRRR-MM-DD_GG-MM-SS.json`:
 
 ```json
 {
@@ -48,7 +65,7 @@ Przycisk „Zapisz do pliku” (lub `Ctrl+S`) tworzy plik `rotacje-ustawienia-RR
 „Wczytaj z pliku” (lub `Ctrl+O`) sprawdza plik i zastępuje nim wszystkie ustawienia.
 Błędny plik jest odrzucany z opisem problemu, a obecne ustawienia zostają bez zmian.
 
-„Zapisz PDF” (lub `P`) tworzy plik `rotacje-ustawienia-RRRR-MM-DD_GG-MM-SS.pdf` do wydruku:
+„Zapisz PDF” (lub `P`) tworzy plik PDF do wydruku (nazwa jak wyżej, z rozszerzeniem `.pdf`):
 3 strony A4, po 2 ustawienia na stronie, każde z boiskiem dla przyjęcia i dla naszej
 zagrywki, oceną (prawidłowe / błąd z listą naruszeń) i współrzędnymi zawodników.
 PDF powstaje w przeglądarce bez zewnętrznych bibliotek (strony zapisane jako obrazy,
@@ -73,6 +90,7 @@ Działają w całej aplikacji (lista w aplikacji pod klawiszem `?`).
 | `Ctrl+S`, `Ctrl+O` | zapisz ustawienia do pliku / wczytaj z pliku |
 | `P` | zapisz zestawienie ustawień do PDF |
 | `R` | resetuj wszystkie ustawienia (z potwierdzeniem) |
+| `U` | okno Ustawienia |
 | `L`, `N`, `D` | libero / numery stref / drogi do pozycji w grze |
 | `F` | pełny ekran |
 | `?` / `H` | lista skrótów |

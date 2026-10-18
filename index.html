@@ -228,6 +228,11 @@ html { touch-action: pan-x pan-y; }
 @media (min-width: 980px) { .app-lower { margin-top: 20px; } }
 .lower-left { min-width: 0; }
 @media (max-width: 979px) { .lower-right { order: -1; } }
+/* gdy widoczna jest tylko jedna strona dolnego rzędu, zajmuje całą szerokość */
+@media (min-width: 980px) {
+  .app-lower.one-col { grid-template-columns: minmax(0, 1fr); }
+  .app-lower.one-col .lower-right { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+}
 
 /* plik z ustawieniami i stopka */
 .file-card p.muted { margin: 0 0 10px; font-size: 14px; max-width: 60ch; }
@@ -252,12 +257,33 @@ html { touch-action: pan-x pan-y; }
   border: 1px solid var(--line); border-bottom-width: 2px; background: var(--bg); color: var(--ink);
   font: 600 12.5px/1.5 var(--f-body); text-align: center; font-variant-numeric: tabular-nums;
 }
-#help {
+[hidden] { display: none !important; }
+.top-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.settings-btn { min-height: 36px; padding: 6px 12px; font-size: 13.5px; }
+#help, .sheet {
   width: min(860px, calc(100% - 32px)); max-height: calc(100% - 48px); overflow: auto;
   border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px 22px;
   background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.3);
 }
-#help::backdrop { background: rgba(10, 18, 26, .55); }
+#help::backdrop, .sheet::backdrop { background: rgba(10, 18, 26, .55); }
+/* okno ustawień */
+.set-sec { padding: 14px 0; border-top: 1px solid var(--line); }
+.set-sec:first-of-type { border-top: 0; padding-top: 4px; }
+.set-sec h3 { margin: 0 0 8px; font-family: var(--f-display); font-weight: 700; font-size: 17px; letter-spacing: .03em; text-transform: uppercase; }
+.set-note { margin: 0 0 10px; font-size: 13.5px; color: var(--muted); max-width: 70ch; }
+.set-note code { font-size: 13px; color: var(--ink); background: var(--bg); padding: 1px 6px; border-radius: 5px; word-break: break-all; }
+.set-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.set-grid { display: grid; gap: 2px 20px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.set-item { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; font-size: 14.5px; cursor: pointer; }
+.set-item input { margin-top: 2px; accent-color: var(--accent); width: 20px; height: 20px; flex: none; }
+.set-item small { display: block; color: var(--muted); font-size: 12.5px; }
+.set-field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.set-field input {
+  font: 400 15px var(--f-body); padding: 10px 12px; min-height: 44px; border-radius: 9px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; max-width: 420px;
+}
+.set-field input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.sheet .file-actions { margin-top: 4px; }
 .help-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
 .help-head h2 { margin: 0; font-family: var(--f-display); font-size: 26px; }
 .help-grid { display: grid; gap: 8px 28px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
@@ -304,10 +330,64 @@ html { touch-action: pan-x pan-y; }
       <h1>Rotacje w siatkówce</h1>
     </div>
     <div class="top-right">
-      <p class="lede">Przeciągnij zawodnika palcem lub myszą. Od razu zobaczysz, czy w chwili zagrywki stoi prawidłowo względem sąsiadów, czy to już błąd ustawienia.</p>
-      <button type="button" class="btn keys-btn" id="keys-btn" aria-haspopup="dialog" title="Skróty klawiszowe (?)"><span class="kbd">?</span> Skróty klawiszowe</button>
+      <p class="lede" data-view="lede">Przeciągnij zawodnika palcem lub myszą. Od razu zobaczysz, czy w chwili zagrywki stoi prawidłowo względem sąsiadów, czy to już błąd ustawienia.</p>
+      <div class="top-buttons">
+        <button type="button" class="btn keys-btn" id="keys-btn" data-view="keys" aria-haspopup="dialog" title="Skróty klawiszowe (?)"><span class="kbd">?</span> Skróty klawiszowe</button>
+        <button type="button" class="btn settings-btn" id="settings-btn" aria-haspopup="dialog" title="Ustawienia (U)"><span class="k">⚙</span> Ustawienia</button>
+      </div>
     </div>
   </header>
+
+  <dialog id="settings" class="sheet" aria-labelledby="settings-title">
+    <div class="help-head">
+      <h2 id="settings-title">Ustawienia</h2>
+      <button type="button" class="btn" id="settings-close">Zamknij <span class="kbd">Esc</span></button>
+    </div>
+
+    <section class="set-sec">
+      <h3>Widok ekranu głównego</h3>
+      <p class="set-note">Wybierz, co ma być widoczne. Werdykt, boisko i przycisk „Zagraj piłkę” są widoczne zawsze.</p>
+      <div class="set-presets">
+        <button type="button" class="btn" id="view-slim">Widok uproszczony</button>
+        <button type="button" class="btn" id="view-all">Pokaż wszystko</button>
+      </div>
+      <div class="set-grid" id="view-list"></div>
+    </section>
+
+    <section class="set-sec">
+      <h3>Boisko</h3>
+      <div class="set-grid">
+        <label class="set-item"><input type="checkbox" data-opt="libero"> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
+        <label class="set-item"><input type="checkbox" data-opt="zones"> <span>Numery stref na boisku</span></label>
+        <label class="set-item"><input type="checkbox" data-opt="arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
+      </div>
+    </section>
+
+    <section class="set-sec">
+      <h3>Plik z ustawieniami</h3>
+      <label class="set-field" for="fn-base">Nazwa pliku
+        <input type="text" id="fn-base" maxlength="80" autocomplete="off" spellcheck="false" placeholder="rotacje-ustawienia">
+      </label>
+      <div class="set-grid">
+        <label class="set-item"><input type="checkbox" id="fn-date"> <span>Dodaj datę<small>RRRR-MM-DD</small></span></label>
+        <label class="set-item"><input type="checkbox" id="fn-time"> <span>Dodaj godzinę<small>GG-MM-SS, z sekundami</small></span></label>
+      </div>
+      <p class="set-note">Przykład: <code id="fn-preview"></code></p>
+      <p class="set-note" id="fn-warn" hidden>Bez daty i godziny kolejne zapisy będą miały tę samą nazwę. Przeglądarka doda wtedy do nazwy numer, np. (1).</p>
+      <div class="file-actions">
+        <button type="button" class="btn primary" data-action="export"><span class="k">⭳</span> Zapisz do pliku</button>
+        <button type="button" class="btn" data-action="import"><span class="k">⭱</span> Wczytaj z pliku</button>
+        <button type="button" class="btn" data-action="pdf"><span class="k">⎙</span> Zapisz PDF</button>
+      </div>
+      <p class="file-msg" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="set-sec">
+      <h3>Reset</h3>
+      <p class="set-note">Przywraca wzorcowe pozycje we wszystkich ustawieniach i domyślne opcje boiska. Widok ekranu i nazwa pliku zostają bez zmian.</p>
+      <button type="button" class="btn danger" data-action="reset" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
+    </section>
+  </dialog>
 
   <dialog id="help" aria-labelledby="help-title">
     <div class="help-head">
@@ -356,6 +436,7 @@ html { touch-action: pan-x pan-y; }
           <dt><span class="kbd">N</span></dt><dd>numery stref</dd>
           <dt><span class="kbd">D</span></dt><dd>drogi do pozycji w grze</dd>
           <dt><span class="kbd">F</span></dt><dd>pełny ekran</dd>
+          <dt><span class="kbd">U</span></dt><dd>ustawienia (widok, boisko, plik)</dd>
           <dt><span class="kbd">?</span> <span class="kbd">H</span></dt><dd>ta lista skrótów</dd>
         </dl>
       </section>
@@ -370,6 +451,7 @@ html { touch-action: pan-x pan-y; }
         <li>opcje wrócą do domyślnych (libero i numery stref włączone, drogi do pozycji wyłączone),</li>
         <li>historia cofania ruchów zostanie wyczyszczona.</li>
       </ul>
+      <p>Widok ekranu i nazwa pliku zostają bez zmian.</p>
       <p class="warn">Tej operacji nie można cofnąć. Jeśli chcesz zachować obecne ustawienia, najpierw zapisz je do pliku.</p>
     </div>
     <div class="confirm-actions">
@@ -412,14 +494,14 @@ html { touch-action: pan-x pan-y; }
       <div class="actions">
         <button type="button" class="btn primary" id="next"><span class="k">↻</span> Następne przejście</button>
         <button type="button" class="btn" id="prev"><span class="k">↺</span> Poprzednie przejście</button>
-        <button type="button" class="btn" id="undo" disabled><span class="k">⟲</span> Cofnij ruch</button>
-        <button type="button" class="btn" id="redo" disabled><span class="k">⟳</span> Ponów ruch</button>
+        <button type="button" class="btn" id="undo" data-view="history" disabled><span class="k">⟲</span> Cofnij ruch</button>
+        <button type="button" class="btn" id="redo" data-view="history" disabled><span class="k">⟳</span> Ponów ruch</button>
         <button type="button" class="btn wide" id="play"><span class="k">▶</span> Zagraj piłkę</button>
-        <button type="button" class="btn" id="preset">Wzorcowe ustawienie</button>
-        <button type="button" class="btn" id="base">Ustaw w strefach</button>
+        <button type="button" class="btn" id="preset" data-view="layout">Wzorcowe ustawienie</button>
+        <button type="button" class="btn" id="base" data-view="layout">Ustaw w strefach</button>
       </div>
 
-      <div class="legend">
+      <div class="legend" data-view="legend">
         <span><i class="chip k-s">R</i> rozgrywający</span>
         <span><i class="chip k-oh">P</i> przyjmujący</span>
         <span><i class="chip k-mb">Ś</i> środkowy</span>
@@ -431,16 +513,16 @@ html { touch-action: pan-x pan-y; }
 
     <aside class="panel">
       <div id="status" class="status" role="status" aria-live="polite"></div>
-      <div class="card sel" id="sel"></div>
-      <div class="card">
+      <div class="card sel" id="sel" data-view="player"></div>
+      <div class="card" data-view="rels">
         <h2>Zależności w tym ustawieniu</h2>
         <div id="rels"></div>
       </div>
     </aside>
   </main>
 
-  <section class="app app-lower" aria-label="Zasady, opcje i plik z ustawieniami">
-    <div class="lower-left">
+  <section class="app app-lower" id="lower" aria-label="Zasady, opcje i plik z ustawieniami">
+    <div class="lower-left" data-view="rules">
         <details class="card rules" id="rules" open>
           <summary>Zasady ustawienia · FIVB 2025–2028</summary>
           <ol>
@@ -456,29 +538,29 @@ html { touch-action: pan-x pan-y; }
           <p class="note">O pozycji decydują stopy na podłożu. Liczy się ostatni kontakt z podłogą. Wystarczy, że część stopy jest na równi lub dalej od siatki (bliżej linii bocznej) niż stopa drugiego zawodnika. W aplikacji punktem odniesienia jest środek znacznika, więc przy różnicy kilku centymetrów decyduje rzeczywiste ustawienie stóp.</p>
         </details>
     </div>
-    <div class="lower-right panel">
-        <div class="card opts">
+    <div class="lower-right panel" id="lower-right">
+        <div class="card opts" data-view="opts">
           <h2>Opcje</h2>
-          <label><input type="checkbox" id="opt-lib" checked> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
-          <label><input type="checkbox" id="opt-zones" checked> <span>Numery stref na boisku</span></label>
-          <label><input type="checkbox" id="opt-arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
-          <button type="button" class="btn danger" id="reset-all" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
+          <label><input type="checkbox" data-opt="libero"> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
+          <label><input type="checkbox" data-opt="zones"> <span>Numery stref na boisku</span></label>
+          <label><input type="checkbox" data-opt="arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
+          <button type="button" class="btn danger" data-action="reset" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
         </div>
-        <div class="card file-card">
+        <div class="card file-card" data-view="file">
           <h2>Plik z ustawieniami</h2>
-          <p class="muted">Zapisz pozycje zawodników ze wszystkich 6 ustawień (przyjęcie i zagrywka) oraz opcje do pliku. Wczytasz go na innym urządzeniu albo prześlesz drugiemu trenerowi. PDF to zestawienie do wydruku z boiskami i oceną każdego ustawienia.</p>
+          <p class="muted">Zapisz pozycje zawodników ze wszystkich 6 ustawień (przyjęcie i zagrywka) oraz opcje do pliku. Wczytasz go na innym urządzeniu albo prześlesz drugiemu trenerowi. PDF to zestawienie do wydruku z boiskami i oceną każdego ustawienia. Nazwę pliku ustawisz w Ustawieniach.</p>
           <div class="file-actions">
-            <button type="button" class="btn primary" id="export-btn"><span class="k">⭳</span> Zapisz do pliku</button>
-            <button type="button" class="btn" id="import-btn"><span class="k">⭱</span> Wczytaj z pliku</button>
-            <button type="button" class="btn" id="pdf-btn"><span class="k">⎙</span> Zapisz PDF</button>
+            <button type="button" class="btn primary" data-action="export"><span class="k">⭳</span> Zapisz do pliku</button>
+            <button type="button" class="btn" data-action="import"><span class="k">⭱</span> Wczytaj z pliku</button>
+            <button type="button" class="btn" data-action="pdf"><span class="k">⎙</span> Zapisz PDF</button>
           </div>
-          <input type="file" id="import-file" accept=".json,application/json" hidden>
-          <p class="file-msg" id="file-msg" role="status" aria-live="polite"></p>
+          <p class="file-msg" role="status" aria-live="polite"></p>
         </div>
     </div>
   </section>
+  <input type="file" id="import-file" accept=".json,application/json" hidden>
 
-  <footer class="foot">
+  <footer class="foot" data-view="footer">
     <span>Autor: <b>Wojciech Marynowski</b></span>
     <span>Zasady według przepisów FIVB 2025–2028</span>
     <span id="app-version" class="num"></span>
@@ -489,7 +571,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.16";
+  const APP_VERSION = "1.17";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -535,7 +617,28 @@ html { touch-action: pan-x pan-y; }
   const basePos = (phase) => { const o = toPos(BASE); if (phase === "serve") o[1] = { x: SERVE_SPOT[0], y: SERVE_SPOT[1] }; return o; };
   const allPresets = () => ({ recv: [0,1,2,3,4,5].map(k => preset("recv", k)), serve: [0,1,2,3,4,5].map(k => preset("serve", k)) });
 
-  const state = { k: 0, phase: "recv", inPlay: false, playPos: null, pos: allPresets(), libero: true, zones: true, arrows: false, sel: null, hov: null };
+  // elementy ekranu głównego, które można ukryć w Ustawieniach; slim = widok uproszczony (domyślny)
+  const VIEW_ITEMS = [
+    { key: "lede",    slim: false, label: "Opis pod tytułem" },
+    { key: "keys",    slim: true,  label: "Przycisk „Skróty klawiszowe”", desc: "tylko na komputerze z myszą" },
+    { key: "history", slim: true,  label: "Przyciski „Cofnij ruch” i „Ponów ruch”" },
+    { key: "layout",  slim: false, label: "Przyciski „Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty klawiszowe W i S działają zawsze" },
+    { key: "legend",  slim: false, label: "Legenda kolorów pod boiskiem" },
+    { key: "player",  slim: true,  label: "Karta zaznaczonego zawodnika" },
+    { key: "rels",    slim: true,  label: "Lista „Zależności w tym ustawieniu”" },
+    { key: "hint",    slim: false, label: "Podpowiedź nad listą zależności" },
+    { key: "opts",    slim: false, label: "Karta „Opcje” boiska", desc: "te same opcje są w Ustawieniach" },
+    { key: "file",    slim: false, label: "Karta „Plik z ustawieniami”", desc: "zapis, wczytanie i PDF są też w Ustawieniach" },
+    { key: "rules",   slim: false, label: "Karta „Zasady ustawienia”" },
+    { key: "footer",  slim: true,  label: "Stopka (autor, wersja)" }
+  ];
+  const viewPreset = (all) => Object.fromEntries(VIEW_ITEMS.map((v) => [v.key, all || v.slim]));
+  const DEFAULT_FILE_BASE = "rotacje-ustawienia";
+
+  const state = {
+    k: 0, phase: "recv", inPlay: false, playPos: null, pos: allPresets(), libero: true, zones: true, arrows: false, sel: null, hov: null,
+    view: viewPreset(false), fileBase: DEFAULT_FILE_BASE, fileDate: true, fileTime: true
+  };
 
   /* ---------- zapamiętywanie w przeglądarce ---------- */
   const KEY = "rotacje-siatkowka-v2";
@@ -548,9 +651,18 @@ html { touch-action: pan-x pan-y; }
       if (s.phase === "recv" || s.phase === "serve") state.phase = s.phase;
       state.libero = s.libero !== false; state.zones = s.zones !== false; state.arrows = !!s.arrows;
     }
+    if (s && s.view && typeof s.view === "object") for (const v of VIEW_ITEMS) if (typeof s.view[v.key] === "boolean") state.view[v.key] = s.view[v.key];
+    if (s && typeof s.fileBase === "string") state.fileBase = s.fileBase;
+    if (s && typeof s.fileDate === "boolean") state.fileDate = s.fileDate;
+    if (s && typeof s.fileTime === "boolean") state.fileTime = s.fileTime;
   } catch (_) {}
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows })); } catch (_) {}
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows,
+        view: state.view, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime
+      }));
+    } catch (_) {}
   }
 
   /* ---------- historia (cofanie i ponawianie ruchu) ---------- */
@@ -871,7 +983,7 @@ html { touch-action: pan-x pan-y; }
         h += `<p style="margin:0">Od sezonu z przepisami 2025–2028 drużyna <b>zagrywająca</b> nie musi zachować kolejności ustawienia (przepis 7.4). Sprawdzane jest tylko, czy zawodnicy stoją na swoim boisku, a zagrywający w strefie zagrywki.</p>
               <p class="muted" style="margin:8px 0 0">Kolejność ustawienia obowiązuje drużynę przyjmującą. Przełącz na „Przyjęcie”, aby ją sprawdzić.</p>`;
       } else {
-        h += `<p class="rels-hint">Po prawej: <span class="m ok">+</span> zapas do błędu, <span class="m bad">−</span> ile brakuje. Stuknij wiersz, aby pokazać parę na boisku.</p>`;
+        if (state.view.hint) h += `<p class="rels-hint">Po prawej: <span class="m ok">+</span> zapas do błędu, <span class="m bad">−</span> ile brakuje. Stuknij wiersz, aby pokazać parę na boisku.</p>`;
         h += `<div class="group-h">Przód – tył <span>pierwszy bliżej siatki</span></div><ul class="rels">${v.rels.map((r, i) => r.t === "v" ? li(r, i) : "").join("")}</ul>`;
         h += `<div class="group-h">Lewo – prawo <span>pierwszy bliżej lewej linii</span></div><ul class="rels">${v.rels.map((r, i) => r.t === "h" ? li(r, i) : "").join("")}</ul>`;
       }
@@ -948,7 +1060,14 @@ html { touch-action: pan-x pan-y; }
   document.getElementById("play").onclick = togglePlay;
   document.getElementById("preset").onclick = applyPreset;
   document.getElementById("base").onclick = applyBase;
-  const optLib = document.getElementById("opt-lib"), optZones = document.getElementById("opt-zones"), optArrows = document.getElementById("opt-arrows");
+  // opcje boiska: te same pola są w karcie „Opcje” i w Ustawieniach – zawsze zsynchronizowane
+  const OPT_LABELS = { libero: "Libero", zones: "Numery stref", arrows: "Drogi do pozycji w grze" };
+  const syncOpts = () => document.querySelectorAll("[data-opt]").forEach((inp) => { inp.checked = !!state[inp.dataset.opt]; });
+  function setOpt(name, value) {
+    state[name] = value; syncOpts(); save();
+    if (name === "libero") render(); else renderCourt();
+  }
+  document.querySelectorAll("[data-opt]").forEach((inp) => { inp.onchange = () => setOpt(inp.dataset.opt, inp.checked); });
 
   // reset całej aplikacji do stanu początkowego – zawsze po potwierdzeniu w oknie
   const confirmDlg = document.getElementById("confirm-reset");
@@ -961,21 +1080,17 @@ html { touch-action: pan-x pan-y; }
   function resetAll() {
     state.pos = allPresets();
     state.libero = true; state.zones = true; state.arrows = false;
-    optLib.checked = true; optZones.checked = true; optArrows.checked = false;
+    syncOpts();
     state.k = 0; state.phase = "recv"; state.inPlay = false; state.sel = null; state.hov = null;
     history.length = 0; future.length = 0; updateHistoryButtons();
     save(); animate();
     toast("Zresetowano wszystkie ustawienia");
   }
-  document.getElementById("reset-all").onclick = openResetConfirm;
   document.getElementById("confirm-cancel").onclick = closeResetConfirm;
   document.getElementById("confirm-ok").onclick = () => { closeResetConfirm(); resetAll(); };
   document.getElementById("confirm-save").onclick = () => exportFile();
   confirmDlg.addEventListener("click", (e) => { if (e.target === confirmDlg) closeResetConfirm(); });
-  optLib.checked = state.libero; optZones.checked = state.zones; optArrows.checked = state.arrows;
-  optLib.onchange = () => { state.libero = optLib.checked; save(); render(); };
-  optZones.onchange = () => { state.zones = optZones.checked; save(); renderCourt(); };
-  optArrows.onchange = () => { state.arrows = optArrows.checked; save(); renderCourt(); };
+  syncOpts();
 
   // krótki komunikat po przełączeniu opcji skrótem
   const toastEl = document.getElementById("toast");
@@ -984,9 +1099,9 @@ html { touch-action: pan-x pan-y; }
     toastEl.textContent = text; toastEl.hidden = false;
     clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastEl.hidden = true; }, 1600);
   }
-  function toggleOption(input, label) {
-    input.checked = !input.checked; input.onchange();
-    toast(`${label}: ${input.checked ? "włączone" : "wyłączone"}`);
+  function toggleOption(name) {
+    setOpt(name, !state[name]);
+    toast(`${OPT_LABELS[name]}: ${state[name] ? "włączone" : "wyłączone"}`);
   }
 
   // lista skrótów
@@ -999,14 +1114,23 @@ html { touch-action: pan-x pan-y; }
 
   /* ---------- plik z ustawieniami: zapis i wczytanie ---------- */
   const AUTHOR = "Wojciech Marynowski";
-  const fileMsg = document.getElementById("file-msg");
   const importInput = document.getElementById("import-file");
   const round2 = (v) => Math.round(v * 100) / 100;
-  function showFileMsg(text, ok) { fileMsg.textContent = text; fileMsg.className = "file-msg " + (ok ? "ok" : "bad"); }
+  // komunikat pokazujemy w karcie „Plik” i w Ustawieniach
+  function showFileMsg(text, ok) {
+    document.querySelectorAll(".file-msg").forEach((el) => { el.textContent = text; el.className = "file-msg " + (ok ? "ok" : "bad"); });
+  }
   // data i czas zapisu: w nazwie pliku bez dwukropków (Windows ich nie dopuszcza), w treści czytelnie
   const p2 = (x) => String(x).padStart(2, "0");
-  const fileStamp = (d) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}_${p2(d.getHours())}-${p2(d.getMinutes())}-${p2(d.getSeconds())}`;
   const humanStamp = (d) => `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+  // nazwa pliku z Ustawień: bez znaków niedozwolonych w Windows, z opcjonalną datą i godziną
+  const cleanBase = (s) => (s || "").replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "-").replace(/\s+/g, " ").replace(/^[\s.]+|[\s.]+$/g, "").slice(0, 80);
+  function makeFileName(ext, d = new Date()) {
+    const parts = [cleanBase(state.fileBase) || DEFAULT_FILE_BASE];
+    if (state.fileDate) parts.push(`${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`);
+    if (state.fileTime) parts.push(`${p2(d.getHours())}-${p2(d.getMinutes())}-${p2(d.getSeconds())}`);
+    return parts.join("_") + "." + ext;
+  }
 
   function buildExport(d = new Date()) {
     const phaseData = (ph, k) => {
@@ -1035,7 +1159,7 @@ html { touch-action: pan-x pan-y; }
   function exportFile() {
     const d = new Date();
     const data = JSON.stringify(buildExport(d), null, 2);
-    const name = `rotacje-ustawienia-${fileStamp(d)}.json`;
+    const name = makeFileName("json", d);
     try {
       const url = URL.createObjectURL(new Blob([data], { type: "application/json" }));
       const a = document.createElement("a");
@@ -1077,7 +1201,7 @@ html { touch-action: pan-x pan-y; }
       if (typeof opcje.libero === "boolean") state.libero = opcje.libero;
       if (typeof opcje.numery_stref === "boolean") state.zones = opcje.numery_stref;
       if (typeof opcje.drogi_do_pozycji === "boolean") state.arrows = opcje.drogi_do_pozycji;
-      optLib.checked = state.libero; optZones.checked = state.zones; optArrows.checked = state.arrows;
+      syncOpts();
       history.length = 0; future.length = 0; updateHistoryButtons();
       state.inPlay = false; state.sel = null;
       save(); animate();
@@ -1281,7 +1405,7 @@ html { touch-action: pan-x pan-y; }
         return { bytes, w: cv.width, h: cv.height };
       });
       const blob = buildPdf(pages, "Rotacje w siatkówce – zestawienie ustawień", d);
-      const name = `rotacje-ustawienia-${fileStamp(d)}.pdf`;
+      const name = makeFileName("pdf", d);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
@@ -1294,9 +1418,61 @@ html { touch-action: pan-x pan-y; }
     }
   }
 
-  document.getElementById("export-btn").onclick = exportFile;
-  document.getElementById("pdf-btn").onclick = exportPdf;
-  document.getElementById("import-btn").onclick = () => importInput.click();
+  // przyciski działające tak samo w karcie „Plik”, w karcie „Opcje” i w Ustawieniach
+  const ACTIONS = { export: exportFile, pdf: exportPdf, import: () => importInput.click(), reset: openResetConfirm };
+  document.querySelectorAll("[data-action]").forEach((b) => { b.onclick = () => ACTIONS[b.dataset.action](); });
+
+  /* ---------- ustawienia: widok ekranu i nazwa pliku ---------- */
+  const settingsDlg = document.getElementById("settings");
+  const viewList = document.getElementById("view-list");
+  viewList.innerHTML = VIEW_ITEMS.map((v) =>
+    `<label class="set-item"><input type="checkbox" data-view-opt="${v.key}"> <span>${v.label}${v.desc ? `<small>${v.desc}</small>` : ""}</span></label>`).join("");
+
+  // pokazuje lub ukrywa elementy ekranu głównego zgodnie z ustawieniami
+  function applyViewPrefs() {
+    document.querySelectorAll("[data-view]").forEach((el) => { el.hidden = !state.view[el.dataset.view]; });
+    const lower = document.getElementById("lower");
+    const rightVisible = state.view.opts || state.view.file;
+    document.getElementById("lower-right").hidden = !rightVisible;
+    lower.hidden = !state.view.rules && !rightVisible;
+    lower.classList.toggle("one-col", !(state.view.rules && rightVisible));
+    viewList.querySelectorAll("[data-view-opt]").forEach((inp) => { inp.checked = !!state.view[inp.dataset.viewOpt]; });
+  }
+  viewList.addEventListener("change", (e) => {
+    const k = e.target.dataset.viewOpt; if (!k) return;
+    state.view[k] = e.target.checked; save(); applyViewPrefs(); renderPanel();
+  });
+  document.getElementById("view-slim").onclick = () => { state.view = viewPreset(false); save(); applyViewPrefs(); renderPanel(); toast("Widok uproszczony"); };
+  document.getElementById("view-all").onclick = () => { state.view = viewPreset(true); save(); applyViewPrefs(); renderPanel(); toast("Widoczne są wszystkie elementy"); };
+
+  const fnBase = document.getElementById("fn-base"), fnDate = document.getElementById("fn-date"), fnTime = document.getElementById("fn-time");
+  function updateFilePrefs() {
+    fnBase.value = state.fileBase; fnDate.checked = state.fileDate; fnTime.checked = state.fileTime;
+    document.getElementById("fn-preview").textContent = makeFileName("json");
+    document.getElementById("fn-warn").hidden = state.fileDate || state.fileTime;
+  }
+  fnBase.addEventListener("input", () => {
+    state.fileBase = fnBase.value; save();
+    document.getElementById("fn-preview").textContent = makeFileName("json");
+  });
+  fnBase.addEventListener("change", () => { if (!cleanBase(fnBase.value)) { state.fileBase = DEFAULT_FILE_BASE; save(); } updateFilePrefs(); });
+  fnDate.onchange = () => { state.fileDate = fnDate.checked; save(); updateFilePrefs(); };
+  fnTime.onchange = () => { state.fileTime = fnTime.checked; save(); updateFilePrefs(); };
+
+  let previewTimer = 0;
+  function openSettings() {
+    if (settingsDlg.open) return;
+    applyViewPrefs(); updateFilePrefs(); syncOpts();
+    try { settingsDlg.showModal(); } catch (_) { settingsDlg.setAttribute("open", ""); }
+    // podgląd nazwy z aktualną godziną, odświeżany co sekundę, gdy okno jest otwarte
+    clearInterval(previewTimer);
+    previewTimer = setInterval(() => { if (!settingsDlg.open) return clearInterval(previewTimer); document.getElementById("fn-preview").textContent = makeFileName("json"); }, 1000);
+  }
+  const closeSettings = () => { if (settingsDlg.open) settingsDlg.close(); };
+  document.getElementById("settings-btn").onclick = openSettings;
+  document.getElementById("settings-close").onclick = closeSettings;
+  settingsDlg.addEventListener("click", (e) => { if (e.target === settingsDlg) closeSettings(); });
+  applyViewPrefs();
   importInput.onchange = () => {
     const f = importInput.files && importInput.files[0];
     if (!f) return;
@@ -1404,7 +1580,7 @@ html { touch-action: pan-x pan-y; }
       if (e.key === "Escape" || e.key === "?" || e.code === "KeyH") { e.preventDefault(); closeHelp(); }
       return;
     }
-    if (confirmDlg.open) return;                       // w oknie potwierdzenia działają tylko Tab, Enter i Esc
+    if (confirmDlg.open || settingsDlg.open) return;    // w oknach działa tylko ich własna obsługa (Tab, Enter, Esc, pisanie)
     if (isTyping(e.target) || e.isComposing) return;
     const mod = e.ctrlKey || e.metaKey;
 
@@ -1448,11 +1624,12 @@ html { touch-action: pan-x pan-y; }
       KeyS: applyBase,
       KeyP: exportPdf,
       KeyR: openResetConfirm,
-      KeyL: () => toggleOption(optLib, "Libero"),
-      KeyN: () => toggleOption(optZones, "Numery stref"),
-      KeyD: () => toggleOption(optArrows, "Drogi do pozycji w grze"),
+      KeyL: () => toggleOption("libero"),
+      KeyN: () => toggleOption("zones"),
+      KeyD: () => toggleOption("arrows"),
       KeyF: toggleFullscreen,
       KeyH: openHelp,
+      KeyU: openSettings,
       Escape: () => { if (state.sel || state.hov !== null) { state.sel = null; state.hov = null; render(); } }
     };
     const act = actions[e.code];
