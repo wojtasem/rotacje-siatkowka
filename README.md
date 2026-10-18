@@ -25,7 +25,7 @@ według [przepisów FIVB 2025–2028](https://www.fivb.com/wp-content/uploads/20
 
 ## Plik z ustawieniami
 
-Przycisk „Zapisz do pliku” (lub `Ctrl+S`) tworzy plik `rotacje-ustawienia-RRRR-MM-DD.json`:
+Przycisk „Zapisz do pliku” (lub `Ctrl+S`) tworzy plik `rotacje-ustawienia-RRRR-MM-DD_GG-MM-SS.json`:
 
 ```json
 {
@@ -48,7 +48,7 @@ Przycisk „Zapisz do pliku” (lub `Ctrl+S`) tworzy plik `rotacje-ustawienia-RR
 „Wczytaj z pliku” (lub `Ctrl+O`) sprawdza plik i zastępuje nim wszystkie ustawienia.
 Błędny plik jest odrzucany z opisem problemu, a obecne ustawienia zostają bez zmian.
 
-„Zapisz PDF” (lub `P`) tworzy plik `rotacje-ustawienia-RRRR-MM-DD.pdf` do wydruku:
+„Zapisz PDF” (lub `P`) tworzy plik `rotacje-ustawienia-RRRR-MM-DD_GG-MM-SS.pdf` do wydruku:
 3 strony A4, po 2 ustawienia na stronie, każde z boiskiem dla przyjęcia i dla naszej
 zagrywki, oceną (prawidłowe / błąd z listą naruszeń) i współrzędnymi zawodników.
 PDF powstaje w przeglądarce bez zewnętrznych bibliotek (strony zapisane jako obrazy,

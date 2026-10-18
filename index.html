@@ -489,7 +489,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.15";
+  const APP_VERSION = "1.16";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -1003,8 +1003,12 @@ html { touch-action: pan-x pan-y; }
   const importInput = document.getElementById("import-file");
   const round2 = (v) => Math.round(v * 100) / 100;
   function showFileMsg(text, ok) { fileMsg.textContent = text; fileMsg.className = "file-msg " + (ok ? "ok" : "bad"); }
+  // data i czas zapisu: w nazwie pliku bez dwukropków (Windows ich nie dopuszcza), w treści czytelnie
+  const p2 = (x) => String(x).padStart(2, "0");
+  const fileStamp = (d) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}_${p2(d.getHours())}-${p2(d.getMinutes())}-${p2(d.getSeconds())}`;
+  const humanStamp = (d) => `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
 
-  function buildExport() {
+  function buildExport(d = new Date()) {
     const phaseData = (ph, k) => {
       const o = {};
       for (let z = 1; z <= 6; z++) {
@@ -1019,7 +1023,8 @@ html { touch-action: pan-x pan-y; }
       autor_aplikacji: AUTHOR,
       wersja_aplikacji: APP_VERSION,
       adres: "https://wojtasem.github.io/rotacje-siatkowka/",
-      data_eksportu: new Date().toISOString(),
+      data_eksportu: d.toISOString(),
+      data_eksportu_lokalna: humanStamp(d),
       przepisy: "FIVB 2025–2028",
       jednostki: "metry; x – odległość od lewej linii bocznej, y – odległość od siatki; klucze 1–6 to strefy",
       opcje: { libero: state.libero, numery_stref: state.zones, drogi_do_pozycji: state.arrows },
@@ -1028,9 +1033,9 @@ html { touch-action: pan-x pan-y; }
   }
 
   function exportFile() {
-    const data = JSON.stringify(buildExport(), null, 2);
-    const d = new Date(), pad = (n) => String(n).padStart(2, "0");
-    const name = `rotacje-ustawienia-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
+    const d = new Date();
+    const data = JSON.stringify(buildExport(d), null, 2);
+    const name = `rotacje-ustawienia-${fileStamp(d)}.json`;
     try {
       const url = URL.createObjectURL(new Blob([data], { type: "application/json" }));
       const a = document.createElement("a");
@@ -1227,7 +1232,7 @@ html { touch-action: pan-x pan-y; }
   }
 
   // minimalny zapis PDF: każda strona to obraz JPEG na całą stronę A4
-  function buildPdf(jpegPages, title) {
+  function buildPdf(jpegPages, title, d = new Date()) {
     const enc = new TextEncoder();
     const chunks = [], offsets = [];
     let len = 0;
@@ -1240,7 +1245,6 @@ html { touch-action: pan-x pan-y; }
     push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
     obj(1, () => push("<< /Type /Catalog /Pages 2 0 R >>"));
     obj(2, () => push(`<< /Type /Pages /Count ${n} /Kids [${jpegPages.map((_, i) => `${pageId(i)} 0 R`).join(" ")}] >>`));
-    const d = new Date(), p2 = (x) => String(x).padStart(2, "0");
     obj(3, () => push(`<< /Title ${utf16hex(title)} /Author ${utf16hex(AUTHOR)} /Creator ${utf16hex("Rotacje w siatkówce")} /CreationDate (D:${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}) >>`));
     jpegPages.forEach((img, i) => {
       obj(pageId(i), () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${A4.w} ${A4.h}] /Resources << /XObject << /Im0 ${imgId(i)} 0 R >> >> /Contents ${contId(i)} 0 R >>`));
@@ -1266,8 +1270,8 @@ html { touch-action: pan-x pan-y; }
     showFileMsg("Tworzę PDF…", true);
     try {
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
-      const d = new Date(), p2 = (x) => String(x).padStart(2, "0");
-      const when = `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+      const d = new Date();
+      const when = humanStamp(d);
       const groups = [[0, 1], [2, 3], [4, 5]];          // po 2 ustawienia na stronę, w kolejności przejść
       const pages = groups.map((ks, i) => {
         const cv = drawPdfPage(i + 1, groups.length, ks, when);
@@ -1276,8 +1280,8 @@ html { touch-action: pan-x pan-y; }
         for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
         return { bytes, w: cv.width, h: cv.height };
       });
-      const blob = buildPdf(pages, "Rotacje w siatkówce – zestawienie ustawień");
-      const name = `rotacje-ustawienia-${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}.pdf`;
+      const blob = buildPdf(pages, "Rotacje w siatkówce – zestawienie ustawień", d);
+      const name = `rotacje-ustawienia-${fileStamp(d)}.pdf`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
