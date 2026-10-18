@@ -48,6 +48,12 @@ Przycisk „Zapisz do pliku” (lub `Ctrl+S`) tworzy plik `rotacje-ustawienia-RR
 „Wczytaj z pliku” (lub `Ctrl+O`) sprawdza plik i zastępuje nim wszystkie ustawienia.
 Błędny plik jest odrzucany z opisem problemu, a obecne ustawienia zostają bez zmian.
 
+„Zapisz PDF” (lub `P`) tworzy plik `rotacje-ustawienia-RRRR-MM-DD.pdf` do wydruku:
+3 strony A4, po 2 ustawienia na stronie, każde z boiskiem dla przyjęcia i dla naszej
+zagrywki, oceną (prawidłowe / błąd z listą naruszeń) i współrzędnymi zawodników.
+PDF powstaje w przeglądarce bez zewnętrznych bibliotek (strony zapisane jako obrazy,
+dzięki czemu działają polskie znaki), więc działa też offline.
+
 ## Skróty klawiszowe
 
 Działają w całej aplikacji (lista w aplikacji pod klawiszem `?`).
@@ -65,6 +71,7 @@ Działają w całej aplikacji (lista w aplikacji pod klawiszem `?`).
 | `Ctrl+Z`, `Ctrl+Y` (lub `Ctrl+Shift+Z`) | cofnij / ponów ruch |
 | `W`, `S` | wzorcowe ustawienie / ustaw w strefach |
 | `Ctrl+S`, `Ctrl+O` | zapisz ustawienia do pliku / wczytaj z pliku |
+| `P` | zapisz zestawienie ustawień do PDF |
 | `L`, `N`, `D` | libero / numery stref / drogi do pozycji w grze |
 | `F` | pełny ekran |
 | `?` / `H` | lista skrótów |

@@ -293,6 +293,7 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
           <dt><span class="kbd">S</span></dt><dd>ustaw w strefach</dd>
           <dt><span class="kbd">Ctrl</span>+<span class="kbd">S</span></dt><dd>zapisz ustawienia do pliku</dd>
           <dt><span class="kbd">Ctrl</span>+<span class="kbd">O</span></dt><dd>wczytaj ustawienia z pliku</dd>
+          <dt><span class="kbd">P</span></dt><dd>zapisz zestawienie ustawień do PDF</dd>
         </dl>
       </section>
       <section>
@@ -374,10 +375,11 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       </div>
       <div class="card file-card">
         <h2>Plik z ustawieniami</h2>
-        <p class="muted">Zapisz pozycje zawodników ze wszystkich 6 ustawień (przyjęcie i zagrywka) oraz opcje do pliku. Wczytasz go na innym urządzeniu albo prześlesz drugiemu trenerowi.</p>
+        <p class="muted">Zapisz pozycje zawodników ze wszystkich 6 ustawień (przyjęcie i zagrywka) oraz opcje do pliku. Wczytasz go na innym urządzeniu albo prześlesz drugiemu trenerowi. PDF to zestawienie do wydruku z boiskami i oceną każdego ustawienia.</p>
         <div class="file-actions">
           <button type="button" class="btn primary" id="export-btn"><span class="k">⭳</span> Zapisz do pliku</button>
           <button type="button" class="btn" id="import-btn"><span class="k">⭱</span> Wczytaj z pliku</button>
+          <button type="button" class="btn" id="pdf-btn"><span class="k">⎙</span> Zapisz PDF</button>
         </div>
         <input type="file" id="import-file" accept=".json,application/json" hidden>
         <p class="file-msg" id="file-msg" role="status" aria-live="polite"></p>
@@ -976,7 +978,215 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
     }
   }
 
+  /* ---------- zestawienie ustawień do PDF ----------
+     Strony rysujemy na canvasie (czcionki aplikacji, polskie znaki) i składamy z nich PDF:
+     każda strona A4 to jeden obraz JPEG. Bez zewnętrznych bibliotek, działa też offline. */
+  const PDF_PX = 2.5;                                    // pikseli na punkt PDF (ok. 180 dpi)
+  const A4 = { w: 595.28, h: 841.89 };
+  const PRINT = { court: "#F7D9C0", courtFar: "#EAD3C2", free: "#DDE7F1", freeFar: "#CCD9E6", line: "#4A5866",
+                  net: "#13202C", ink: "#13202C", muted: "#5A6875", ok: "#138A4C", bad: "#CC1F36", zone: "#E8BC9A" };
+
+  // wykonuje fn tak, jakby w aplikacji wybrane było dane ustawienie i moment (obliczenia zależą od stanu)
+  function withState(phase, k, fn) {
+    const keep = { phase: state.phase, k: state.k, inPlay: state.inPlay };
+    state.phase = phase; state.k = k; state.inPlay = false;
+    try { return fn(); } finally { Object.assign(state, keep); }
+  }
+  const plainTag = (z) => `${infoZ(z).abbr} (${z})`;
+  function faultLines(v) {
+    const out = v.bounds.map((b) => isServer(b.z) ? `${plainTag(b.z)} poza strefą zagrywki` : `${plainTag(b.z)} poza boiskiem`);
+    v.rels.forEach((r) => {
+      if (r.ok) return;
+      const what = r.t === "v" ? "bliżej siatki" : "bliżej lewej linii";
+      out.push(`${plainTag(r.a)} musi być ${what} niż ${plainTag(r.b)} – brakuje ${fmt(-r.margin)}`);
+    });
+    return out;
+  }
+
+  function drawCourtPdf(ctx, ox, oy, W, phase, k) {
+    return withState(phase, k, () => {
+      const V = { x0: -1.2, x1: 10.2, y0: -0.8, y1: 11.3 };
+      const s = W / (V.x1 - V.x0), H = (V.y1 - V.y0) * s;
+      const X = (m) => ox + (m - V.x0) * s, Y = (m) => oy + (m - V.y0) * s;
+      const pos = state.pos[phase][k];
+      const v = validate(pos);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(ox, oy, W, H); ctx.clip();
+      ctx.fillStyle = PRINT.free; ctx.fillRect(ox, oy, W, H);
+      ctx.fillStyle = PRINT.freeFar; ctx.fillRect(ox, oy, W, Y(0) - oy);
+      ctx.fillStyle = PRINT.courtFar; ctx.fillRect(X(0), oy, 9 * s, Y(0) - oy);
+      ctx.fillStyle = PRINT.court; ctx.fillRect(X(0), Y(0), 9 * s, 9 * s);
+      // numery stref
+      ctx.fillStyle = PRINT.zone; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = `700 ${2.0 * s}px "Barlow Condensed", Arial, sans-serif`;
+      for (const [z, [bx, by]] of Object.entries(BASE)) ctx.fillText(z, X(bx), Y(by));
+      // linie boiska (5 cm), linia ataku, siatka
+      ctx.strokeStyle = PRINT.line; ctx.lineWidth = Math.max(1.5, 0.05 * s);
+      ctx.strokeRect(X(0), Y(0), 9 * s, 9 * s);
+      ctx.beginPath(); ctx.moveTo(X(0), Y(3)); ctx.lineTo(X(9), Y(3)); ctx.stroke();
+      ctx.setLineDash([0.15 * s, 0.2 * s]);
+      ctx.beginPath(); ctx.moveTo(X(-1.2), Y(3)); ctx.lineTo(X(0), Y(3)); ctx.moveTo(X(9), Y(3)); ctx.lineTo(X(10.2), Y(3)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = PRINT.net; ctx.lineWidth = 0.14 * s;
+      ctx.beginPath(); ctx.moveTo(X(-1), Y(0)); ctx.lineTo(X(10), Y(0)); ctx.stroke();
+      ctx.fillStyle = PRINT.muted; ctx.font = `600 ${0.32 * s}px "Barlow Condensed", Arial, sans-serif`;
+      ctx.fillText("STREFA ZAGRYWKI", X(4.5), Y(10.9));
+      // naruszenia: czerwona linia między zawodnikami i brakująca odległość
+      const P = (z) => pos[z];
+      v.rels.forEach((r) => {
+        if (r.ok) return;
+        const A = P(r.a), B = P(r.b);
+        ctx.strokeStyle = PRINT.bad; ctx.lineWidth = 0.09 * s;
+        ctx.beginPath(); ctx.moveTo(X(A.x), Y(A.y)); ctx.lineTo(X(B.x), Y(B.y)); ctx.stroke();
+        const t = "−" + fmt(-r.margin), mx = X((A.x + B.x) / 2), my = Y((A.y + B.y) / 2);
+        ctx.font = `600 ${0.3 * s}px Barlow, Arial, sans-serif`;
+        const tw = ctx.measureText(t).width + 0.3 * s;
+        ctx.fillStyle = PRINT.bad; ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(mx - tw / 2, my - 0.23 * s, tw, 0.46 * s, 0.23 * s); else ctx.rect(mx - tw / 2, my - 0.23 * s, tw, 0.46 * s);
+        ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.fillText(t, mx, my + 0.01 * s);
+      });
+      // zawodnicy
+      for (let z = 1; z <= 6; z++) {
+        const p = P(z), i = infoZ(z), cx = X(p.x), cy = Y(p.y), r = 0.44 * s;
+        if (v.faulty.has(z)) { ctx.strokeStyle = PRINT.bad; ctx.lineWidth = 0.09 * s; ctx.beginPath(); ctx.arc(cx, cy, 0.58 * s, 0, 2 * Math.PI); ctx.stroke(); }
+        ctx.fillStyle = FILL[i.kind]; ctx.strokeStyle = "rgba(0,0,0,.5)"; ctx.lineWidth = 0.04 * s;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = TEXT[i.kind]; ctx.font = `700 ${(i.abbr.length > 1 ? 0.42 : 0.48) * s}px "Barlow Condensed", Arial, sans-serif`;
+        ctx.fillText(i.abbr, cx, cy + 0.02 * s);
+        ctx.fillStyle = "#0b1620"; ctx.beginPath(); ctx.arc(cx + 0.38 * s, cy - 0.36 * s, 0.2 * s, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.font = `700 ${0.25 * s}px "Barlow Condensed", Arial, sans-serif`;
+        ctx.fillText(String(z), cx + 0.38 * s, cy - 0.35 * s);
+      }
+      ctx.restore();
+      ctx.strokeStyle = "#B8C4D0"; ctx.lineWidth = 2; ctx.strokeRect(ox, oy, W, H);
+      return { H, v, pos, faults: faultLines(v), free: freeOrder() };
+    });
+  }
+
+  function drawPdfPage(pageNo, pages, ks, when) {
+    const cw = Math.round(A4.w * PDF_PX), ch = Math.round(A4.h * PDF_PX);
+    const cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cw, ch);
+    const M = 36 * PDF_PX, U = PDF_PX;                    // margines i jednostka (1 pt)
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    // nagłówek
+    ctx.fillStyle = PRINT.ink; ctx.font = `700 ${22 * U}px "Barlow Condensed", Arial, sans-serif`;
+    ctx.fillText("Rotacje w siatkówce – zestawienie ustawień", M, M + 16 * U);
+    ctx.fillStyle = PRINT.muted; ctx.font = `400 ${9 * U}px Barlow, Arial, sans-serif`;
+    ctx.fillText(`Przepisy FIVB 2025–2028 · libero ${state.libero ? "włączone" : "wyłączone"} · wygenerowano ${when} · autor aplikacji: ${AUTHOR}`, M, M + 30 * U);
+    ctx.textAlign = "right"; ctx.fillText(`Strona ${pageNo} z ${pages}`, cw - M, M + 16 * U); ctx.textAlign = "left";
+    ctx.strokeStyle = "#D3DBE3"; ctx.lineWidth = U; ctx.beginPath(); ctx.moveTo(M, M + 38 * U); ctx.lineTo(cw - M, M + 38 * U); ctx.stroke();
+
+    const gap = 20 * U, colW = (cw - 2 * M - gap) / 2, courtW = Math.min(colW, 190 * U);
+    let y = M + 54 * U;
+    for (const k of ks) {
+      ctx.fillStyle = PRINT.ink; ctx.font = `700 ${15 * U}px "Barlow Condensed", Arial, sans-serif`; ctx.textAlign = "left";
+      ctx.fillText(`Ustawienie ${ZSEQ[k]} – rozgrywający w strefie ${ZSEQ[k]}`, M, y);
+      y += 10 * U;
+      let blockH = 0;
+      [["recv", "Przyjęcie"], ["serve", "Nasza zagrywka"]].forEach(([ph, label], col) => {
+        const ox = M + col * (colW + gap);
+        ctx.fillStyle = PRINT.muted; ctx.font = `600 ${9 * U}px Barlow, Arial, sans-serif`; ctx.textAlign = "left";
+        ctx.fillText(label.toUpperCase(), ox, y + 9 * U);
+        const res = drawCourtPdf(ctx, ox, y + 14 * U, courtW, ph, k);
+        let ty = y + 14 * U + res.H + 14 * U;
+        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+        ctx.font = `700 ${11 * U}px Barlow, Arial, sans-serif`;
+        ctx.fillStyle = res.v.ok ? PRINT.ok : PRINT.bad;
+        ctx.fillText(res.v.ok ? "✓ Ustawienie prawidłowe" : `✕ Błąd ustawienia (${res.v.nBad})`, ox, ty);
+        ctx.font = `400 ${8.5 * U}px Barlow, Arial, sans-serif`; ctx.fillStyle = PRINT.ink;
+        const notes = res.faults.length ? res.faults.slice(0, 3) : [res.free ? "Drużyna zagrywająca może stać dowolnie na swoim boisku (7.4)." : "Kolejność ustawienia drużyny przyjmującej zachowana."];
+        if (res.faults.length > 3) notes.push(`…i ${res.faults.length - 3} więcej`);
+        notes.forEach((n) => { ty += 12 * U; ctx.fillText(n, ox, ty); });
+        // współrzędne zawodników: 2 kolumny po 3 strefy
+        ty += 16 * U;
+        ctx.font = `400 ${8 * U}px Barlow, Arial, sans-serif`; ctx.fillStyle = PRINT.muted;
+        withState(ph, k, () => {
+          [1, 6, 5, 2, 3, 4].forEach((z, i) => {
+            const p = res.pos[z];
+            const tx = ox + (i < 3 ? 0 : colW / 2), yy = ty + (i % 3) * 11 * U;
+            ctx.fillText(`strefa ${z} · ${infoZ(z).abbr} · x ${p.x.toFixed(2).replace(".", ",")} m · y ${p.y.toFixed(2).replace(".", ",")} m`, tx, yy);
+          });
+        });
+        blockH = Math.max(blockH, ty + 3 * 11 * U - y);
+      });
+      y += blockH + 16 * U;
+    }
+    // stopka
+    ctx.fillStyle = PRINT.muted; ctx.font = `400 ${8 * U}px Barlow, Arial, sans-serif`; ctx.textAlign = "left";
+    ctx.fillText("x – odległość od lewej linii bocznej, y – odległość od siatki. Pozycja liczona od środka znacznika zawodnika.", M, ch - M + 4 * U);
+    ctx.textAlign = "right"; ctx.fillText("wojtasem.github.io/rotacje-siatkowka", cw - M, ch - M + 4 * U);
+    return cv;
+  }
+
+  // minimalny zapis PDF: każda strona to obraz JPEG na całą stronę A4
+  function buildPdf(jpegPages, title) {
+    const enc = new TextEncoder();
+    const chunks = [], offsets = [];
+    let len = 0;
+    const push = (data) => { const b = typeof data === "string" ? enc.encode(data) : data; chunks.push(b); len += b.length; };
+    const utf16hex = (s) => "<FEFF" + Array.from(s).map((ch) => { const c = ch.codePointAt(0); return c > 0xffff ? "003F" : c.toString(16).padStart(4, "0"); }).join("").toUpperCase() + ">";
+    const n = jpegPages.length;
+    // numeracja obiektów: 1 katalog, 2 drzewo stron, 3 metadane, potem po 3 obiekty na stronę
+    const pageId = (i) => 4 + i * 3, contId = (i) => 5 + i * 3, imgId = (i) => 6 + i * 3;
+    const obj = (id, body) => { offsets[id] = len; push(`${id} 0 obj\n`); body(); push("\nendobj\n"); };
+    push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+    obj(1, () => push("<< /Type /Catalog /Pages 2 0 R >>"));
+    obj(2, () => push(`<< /Type /Pages /Count ${n} /Kids [${jpegPages.map((_, i) => `${pageId(i)} 0 R`).join(" ")}] >>`));
+    const d = new Date(), p2 = (x) => String(x).padStart(2, "0");
+    obj(3, () => push(`<< /Title ${utf16hex(title)} /Author ${utf16hex(AUTHOR)} /Creator ${utf16hex("Rotacje w siatkówce")} /CreationDate (D:${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}) >>`));
+    jpegPages.forEach((img, i) => {
+      obj(pageId(i), () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${A4.w} ${A4.h}] /Resources << /XObject << /Im0 ${imgId(i)} 0 R >> >> /Contents ${contId(i)} 0 R >>`));
+      const content = `q ${A4.w} 0 0 ${A4.h} 0 0 cm /Im0 Do Q`;
+      obj(contId(i), () => { push(`<< /Length ${content.length} >>\nstream\n`); push(content); push("\nendstream"); });
+      obj(imgId(i), () => {
+        push(`<< /Type /XObject /Subtype /Image /Width ${img.w} /Height ${img.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.bytes.length} >>\nstream\n`);
+        push(img.bytes); push("\nendstream");
+      });
+    });
+    const total = 4 + n * 3, xref = len;
+    let x = `xref\n0 ${total}\n0000000000 65535 f \n`;
+    for (let id = 1; id < total; id++) x += String(offsets[id]).padStart(10, "0") + " 00000 n \n";
+    push(x);
+    push(`trailer\n<< /Size ${total} /Root 1 0 R /Info 3 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+    return new Blob(chunks, { type: "application/pdf" });
+  }
+
+  let pdfBusy = false;
+  async function exportPdf() {
+    if (pdfBusy) return;
+    pdfBusy = true;
+    showFileMsg("Tworzę PDF…", true);
+    try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const d = new Date(), p2 = (x) => String(x).padStart(2, "0");
+      const when = `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+      const groups = [[0, 1], [2, 3], [4, 5]];          // po 2 ustawienia na stronę, w kolejności przejść
+      const pages = groups.map((ks, i) => {
+        const cv = drawPdfPage(i + 1, groups.length, ks, when);
+        const b64 = cv.toDataURL("image/jpeg", 0.9).split(",")[1];
+        const bin = atob(b64), bytes = new Uint8Array(bin.length);
+        for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+        return { bytes, w: cv.width, h: cv.height };
+      });
+      const blob = buildPdf(pages, "Rotacje w siatkówce – zestawienie ustawień");
+      const name = `rotacje-ustawienia-${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}.pdf`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      showFileMsg(`Zapisano plik ${name}`, true);
+    } catch (err) {
+      showFileMsg("Nie udało się utworzyć PDF w tej przeglądarce.", false);
+    } finally {
+      pdfBusy = false;
+    }
+  }
+
   document.getElementById("export-btn").onclick = exportFile;
+  document.getElementById("pdf-btn").onclick = exportPdf;
   document.getElementById("import-btn").onclick = () => importInput.click();
   importInput.onchange = () => {
     const f = importInput.files && importInput.files[0];
@@ -1110,6 +1320,7 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       Space: togglePlay,
       KeyW: applyPreset,
       KeyS: applyBase,
+      KeyP: exportPdf,
       KeyL: () => toggleOption(optLib, "Libero"),
       KeyN: () => toggleOption(optZones, "Numery stref"),
       KeyD: () => toggleOption(optArrows, "Drogi do pozycji w grze"),
