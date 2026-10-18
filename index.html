@@ -195,6 +195,12 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
 .rules ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
 .rules .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
 
+/* dolny rząd: zasady pod boiskiem, opcje i plik obok */
+.app-lower { margin-top: 16px; }
+@media (min-width: 980px) { .app-lower { margin-top: 20px; } }
+.lower-left { min-width: 0; }
+@media (max-width: 979px) { .lower-right { order: -1; } }
+
 /* plik z ustawieniami i stopka */
 .file-card p.muted { margin: 0 0 10px; font-size: 14px; max-width: 60ch; }
 .file-actions { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
@@ -402,40 +408,47 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
         <h2>Zależności w tym ustawieniu</h2>
         <div id="rels"></div>
       </div>
-      <div class="card opts">
-        <h2>Opcje</h2>
-        <label><input type="checkbox" id="opt-lib" checked> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
-        <label><input type="checkbox" id="opt-zones" checked> <span>Numery stref na boisku</span></label>
-        <label><input type="checkbox" id="opt-arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
-        <button type="button" class="btn danger" id="reset-all" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
-      </div>
-      <div class="card file-card">
-        <h2>Plik z ustawieniami</h2>
-        <p class="muted">Zapisz pozycje zawodników ze wszystkich 6 ustawień (przyjęcie i zagrywka) oraz opcje do pliku. Wczytasz go na innym urządzeniu albo prześlesz drugiemu trenerowi. PDF to zestawienie do wydruku z boiskami i oceną każdego ustawienia.</p>
-        <div class="file-actions">
-          <button type="button" class="btn primary" id="export-btn"><span class="k">⭳</span> Zapisz do pliku</button>
-          <button type="button" class="btn" id="import-btn"><span class="k">⭱</span> Wczytaj z pliku</button>
-          <button type="button" class="btn" id="pdf-btn"><span class="k">⎙</span> Zapisz PDF</button>
-        </div>
-        <input type="file" id="import-file" accept=".json,application/json" hidden>
-        <p class="file-msg" id="file-msg" role="status" aria-live="polite"></p>
-      </div>
-      <details class="card rules" id="rules" open>
-        <summary>Zasady ustawienia · FIVB 2025–2028</summary>
-        <ol>
-          <li>Liczy się tylko chwila uderzenia piłki przez zagrywającego. Po uderzeniu każdy może stanąć gdziekolwiek (7.4.4).</li>
-          <li>Kolejność ustawienia obowiązuje tylko drużynę <b>przyjmującą</b>. Drużyna zagrywająca może zająć dowolne pozycje (7.4).</li>
-          <li>Przód–tył: zawodnik drugiej linii stoi dalej od siatki niż odpowiadający mu zawodnik pierwszej linii lub na równi z nim. Pary to 4–5, 3–6 i 2–1 (7.4.2.1, 7.4.3.1).</li>
-          <li>Lewo–prawo: w każdej linii zawodnik z lewej strony stoi bliżej lewej linii bocznej niż pozostali z tej linii, a zawodnik z prawej strony bliżej prawej. Na równi też wolno. Pierwsza linia: 4, 3, 2. Druga linia: 5, 6, 1 (7.4.2.2, 7.4.3.2).</li>
-          <li>Zawodnicy z różnych linii, którzy nie są parą przód–tył (np. 4 i 1, 2 i 6, 4 i 6), nie mają żadnej zależności.</li>
-          <li>Obie drużyny, poza zagrywającym, muszą stać na swoim boisku. Linie należą do boiska (7.4).</li>
-          <li>Zagrywający musi stać w strefie zagrywki, za linią końcową, i nie może jej dotykać (12.4).</li>
-          <li>Błąd ustawienia to punkt i zagrywka dla rywali (7.5).</li>
-        </ol>
-        <p class="note">O pozycji decydują stopy na podłożu. Liczy się ostatni kontakt z podłogą. Wystarczy, że część stopy jest na równi lub dalej od siatki (bliżej linii bocznej) niż stopa drugiego zawodnika. W aplikacji punktem odniesienia jest środek znacznika, więc przy różnicy kilku centymetrów decyduje rzeczywiste ustawienie stóp.</p>
-      </details>
     </aside>
   </main>
+
+  <section class="app app-lower" aria-label="Zasady, opcje i plik z ustawieniami">
+    <div class="lower-left">
+        <details class="card rules" id="rules" open>
+          <summary>Zasady ustawienia · FIVB 2025–2028</summary>
+          <ol>
+            <li>Liczy się tylko chwila uderzenia piłki przez zagrywającego. Po uderzeniu każdy może stanąć gdziekolwiek (7.4.4).</li>
+            <li>Kolejność ustawienia obowiązuje tylko drużynę <b>przyjmującą</b>. Drużyna zagrywająca może zająć dowolne pozycje (7.4).</li>
+            <li>Przód–tył: zawodnik drugiej linii stoi dalej od siatki niż odpowiadający mu zawodnik pierwszej linii lub na równi z nim. Pary to 4–5, 3–6 i 2–1 (7.4.2.1, 7.4.3.1).</li>
+            <li>Lewo–prawo: w każdej linii zawodnik z lewej strony stoi bliżej lewej linii bocznej niż pozostali z tej linii, a zawodnik z prawej strony bliżej prawej. Na równi też wolno. Pierwsza linia: 4, 3, 2. Druga linia: 5, 6, 1 (7.4.2.2, 7.4.3.2).</li>
+            <li>Zawodnicy z różnych linii, którzy nie są parą przód–tył (np. 4 i 1, 2 i 6, 4 i 6), nie mają żadnej zależności.</li>
+            <li>Obie drużyny, poza zagrywającym, muszą stać na swoim boisku. Linie należą do boiska (7.4).</li>
+            <li>Zagrywający musi stać w strefie zagrywki, za linią końcową, i nie może jej dotykać (12.4).</li>
+            <li>Błąd ustawienia to punkt i zagrywka dla rywali (7.5).</li>
+          </ol>
+          <p class="note">O pozycji decydują stopy na podłożu. Liczy się ostatni kontakt z podłogą. Wystarczy, że część stopy jest na równi lub dalej od siatki (bliżej linii bocznej) niż stopa drugiego zawodnika. W aplikacji punktem odniesienia jest środek znacznika, więc przy różnicy kilku centymetrów decyduje rzeczywiste ustawienie stóp.</p>
+        </details>
+    </div>
+    <div class="lower-right panel">
+        <div class="card opts">
+          <h2>Opcje</h2>
+          <label><input type="checkbox" id="opt-lib" checked> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
+          <label><input type="checkbox" id="opt-zones" checked> <span>Numery stref na boisku</span></label>
+          <label><input type="checkbox" id="opt-arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
+          <button type="button" class="btn danger" id="reset-all" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
+        </div>
+        <div class="card file-card">
+          <h2>Plik z ustawieniami</h2>
+          <p class="muted">Zapisz pozycje zawodników ze wszystkich 6 ustawień (przyjęcie i zagrywka) oraz opcje do pliku. Wczytasz go na innym urządzeniu albo prześlesz drugiemu trenerowi. PDF to zestawienie do wydruku z boiskami i oceną każdego ustawienia.</p>
+          <div class="file-actions">
+            <button type="button" class="btn primary" id="export-btn"><span class="k">⭳</span> Zapisz do pliku</button>
+            <button type="button" class="btn" id="import-btn"><span class="k">⭱</span> Wczytaj z pliku</button>
+            <button type="button" class="btn" id="pdf-btn"><span class="k">⎙</span> Zapisz PDF</button>
+          </div>
+          <input type="file" id="import-file" accept=".json,application/json" hidden>
+          <p class="file-msg" id="file-msg" role="status" aria-live="polite"></p>
+        </div>
+    </div>
+  </section>
 
   <footer class="foot">
     <span>Autor: <b>Wojciech Marynowski</b></span>
