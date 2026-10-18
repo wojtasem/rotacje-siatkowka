@@ -117,7 +117,9 @@ html { touch-action: pan-x pan-y; }
 .pill b { font-weight: 600; }
 .pill .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-.actions { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+/* przyciski parami w stałej kolejności: przejścia, ustawienia wzorcowe, cofnij/ponów, zagraj piłkę */
+.actions { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.actions .wide { grid-column: 1 / -1; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   font: 600 14px/1.1 var(--f-body); padding: 10px 12px; min-height: 44px;
@@ -314,8 +316,6 @@ html { touch-action: pan-x pan-y; }
   .rot button { width: auto; flex: 1; min-width: 0; }
   .court-frame { margin-inline: -8px; border-radius: 10px; }
   .legend { font-size: 12.5px; }
-  .actions { grid-template-columns: 1fr 1fr; }
-  .actions .wide { grid-column: 1 / -1; }
 }
 
 /* SVG */
@@ -494,11 +494,11 @@ html { touch-action: pan-x pan-y; }
       <div class="actions">
         <button type="button" class="btn primary" id="next"><span class="k">↻</span> Następne przejście</button>
         <button type="button" class="btn" id="prev"><span class="k">↺</span> Poprzednie przejście</button>
+        <button type="button" class="btn" id="preset" data-view="layout">Wzorcowe ustawienie</button>
+        <button type="button" class="btn" id="base" data-view="layout">Ustaw w strefach</button>
         <button type="button" class="btn" id="undo" data-view="history" disabled><span class="k">⟲</span> Cofnij ruch</button>
         <button type="button" class="btn" id="redo" data-view="history" disabled><span class="k">⟳</span> Ponów ruch</button>
         <button type="button" class="btn wide" id="play"><span class="k">▶</span> Zagraj piłkę</button>
-        <button type="button" class="btn" id="preset" data-view="layout">Wzorcowe ustawienie</button>
-        <button type="button" class="btn" id="base" data-view="layout">Ustaw w strefach</button>
       </div>
 
       <div class="filebar" data-view="filebar" role="group" aria-label="Plik z ustawieniami">
@@ -570,7 +570,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.18";
+  const APP_VERSION = "1.19";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -620,8 +620,8 @@ html { touch-action: pan-x pan-y; }
   const VIEW_ITEMS = [
     { key: "lede",    slim: false, label: "Opis pod tytułem" },
     { key: "keys",    slim: true,  label: "Przycisk „Skróty klawiszowe”", desc: "tylko na komputerze z myszą" },
-    { key: "history", slim: true,  label: "Przyciski „Cofnij ruch” i „Ponów ruch”" },
     { key: "layout",  slim: true,  label: "Przyciski „Wzorcowe ustawienie” i „Ustaw w strefach”", desc: "skróty klawiszowe W i S działają zawsze" },
+    { key: "history", slim: false, label: "Przyciski „Cofnij ruch” i „Ponów ruch”", desc: "skróty Ctrl+Z i Ctrl+Y działają zawsze" },
     { key: "filebar", slim: true,  label: "Przyciski „Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF”", desc: "nazwę pliku ustawisz niżej; skróty Ctrl+S, Ctrl+O i P działają zawsze" },
     { key: "legend",  slim: false, label: "Legenda kolorów pod boiskiem" },
     { key: "player",  slim: true,  label: "Karta zaznaczonego zawodnika" },
@@ -657,12 +657,14 @@ html { touch-action: pan-x pan-y; }
     // 1.18: przyciski „Wzorcowe ustawienie / Ustaw w strefach” domyślnie widoczne – jednorazowo włączamy je
     // także u osób, którym wersja 1.17 zapisała je jako ukryte
     if (s && s.view && !(s.viewV >= 2)) state.view.layout = true;
+    // 1.19: przyciski „Cofnij / Ponów ruch” domyślnie ukryte – jednorazowo ukrywamy je także po wcześniejszych wersjach
+    if (s && s.view && !(s.viewV >= 3)) state.view.history = false;
   } catch (_) {}
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify({
         pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows,
-        view: state.view, viewV: 2, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime
+        view: state.view, viewV: 3, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime
       }));
     } catch (_) {}
   }
