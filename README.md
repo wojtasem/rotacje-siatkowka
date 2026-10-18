@@ -72,6 +72,7 @@ Działają w całej aplikacji (lista w aplikacji pod klawiszem `?`).
 | `W`, `S` | wzorcowe ustawienie / ustaw w strefach |
 | `Ctrl+S`, `Ctrl+O` | zapisz ustawienia do pliku / wczytaj z pliku |
 | `P` | zapisz zestawienie ustawień do PDF |
+| `R` | resetuj wszystkie ustawienia (z potwierdzeniem) |
 | `L`, `N`, `D` | libero / numery stref / drogi do pozycji w grze |
 | `F` | pełny ekran |
 | `?` / `H` | lista skrótów |

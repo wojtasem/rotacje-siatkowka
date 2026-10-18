@@ -123,6 +123,24 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
 .btn:disabled { opacity: .45; cursor: default; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn .k { font-family: var(--f-display); font-size: 17px; }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn.danger:hover:not(:disabled) { border-color: var(--bad); background: var(--bad-soft); }
+.btn.danger-fill { background: var(--bad); border-color: var(--bad); color: #fff; }
+.btn.danger-fill:hover:not(:disabled) { border-color: var(--bad); filter: brightness(1.08); }
+
+/* okno potwierdzenia resetu */
+.confirm {
+  width: min(520px, calc(100% - 32px)); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px;
+  background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.confirm::backdrop { background: rgba(10, 18, 26, .55); }
+.confirm h2 { margin: 0 0 10px; font-family: var(--f-display); font-size: 24px; line-height: 1.1; text-wrap: balance; }
+.confirm p, .confirm li { font-size: 14.5px; }
+.confirm p { margin: 0 0 6px; }
+.confirm ul { margin: 0 0 10px; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.confirm .warn { color: var(--bad); font-weight: 600; }
+.confirm-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+@media (max-width: 640px) { .confirm-actions { flex-direction: column; } .confirm-actions .btn { width: 100%; } #confirm-cancel { order: -1; } }
 
 .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
@@ -294,6 +312,7 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
           <dt><span class="kbd">Ctrl</span>+<span class="kbd">S</span></dt><dd>zapisz ustawienia do pliku</dd>
           <dt><span class="kbd">Ctrl</span>+<span class="kbd">O</span></dt><dd>wczytaj ustawienia z pliku</dd>
           <dt><span class="kbd">P</span></dt><dd>zapisz zestawienie ustawień do PDF</dd>
+          <dt><span class="kbd">R</span></dt><dd>resetuj wszystkie ustawienia (z potwierdzeniem)</dd>
         </dl>
       </section>
       <section>
@@ -306,6 +325,23 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
           <dt><span class="kbd">?</span> <span class="kbd">H</span></dt><dd>ta lista skrótów</dd>
         </dl>
       </section>
+    </div>
+  </dialog>
+  <dialog id="confirm-reset" class="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+    <h2 id="confirm-title">Zresetować wszystkie ustawienia?</h2>
+    <div id="confirm-text">
+      <p>Aplikacja wróci do stanu początkowego:</p>
+      <ul>
+        <li>pozycje zawodników we wszystkich 6 ustawieniach, przy przyjęciu i przy zagrywce, wrócą do wzorcowych,</li>
+        <li>opcje wrócą do domyślnych (libero i numery stref włączone, drogi do pozycji wyłączone),</li>
+        <li>historia cofania ruchów zostanie wyczyszczona.</li>
+      </ul>
+      <p class="warn">Tej operacji nie można cofnąć. Jeśli chcesz zachować obecne ustawienia, najpierw zapisz je do pliku.</p>
+    </div>
+    <div class="confirm-actions">
+      <button type="button" class="btn" id="confirm-save"><span class="k">⭳</span> Najpierw zapisz do pliku</button>
+      <button type="button" class="btn" id="confirm-cancel" autofocus>Anuluj</button>
+      <button type="button" class="btn danger-fill" id="confirm-ok">Tak, resetuj wszystko</button>
     </div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -371,7 +407,7 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
         <label><input type="checkbox" id="opt-lib" checked> <span>Libero w drugiej linii<small>Zastępuje środkowego z tyłu. Gdy środkowy zagrywa ze strefy 1, libero schodzi.</small></span></label>
         <label><input type="checkbox" id="opt-zones" checked> <span>Numery stref na boisku</span></label>
         <label><input type="checkbox" id="opt-arrows"> <span>Droga do pozycji w grze<small>Strzałki od ustawienia do miejsca, na które zawodnik biegnie po zagrywce.</small></span></label>
-        <button type="button" class="btn" id="reset-all">Przywróć wszystkie ustawienia wzorcowe</button>
+        <button type="button" class="btn danger" id="reset-all" aria-haspopup="dialog"><span class="k">↺</span> Resetuj wszystkie ustawienia</button>
       </div>
       <div class="card file-card">
         <h2>Plik z ustawieniami</h2>
@@ -866,8 +902,30 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
   document.getElementById("play").onclick = togglePlay;
   document.getElementById("preset").onclick = applyPreset;
   document.getElementById("base").onclick = applyBase;
-  document.getElementById("reset-all").onclick = () => { history.length = 0; future.length = 0; updateHistoryButtons(); goto(() => { state.pos = allPresets(); }); };
   const optLib = document.getElementById("opt-lib"), optZones = document.getElementById("opt-zones"), optArrows = document.getElementById("opt-arrows");
+
+  // reset całej aplikacji do stanu początkowego – zawsze po potwierdzeniu w oknie
+  const confirmDlg = document.getElementById("confirm-reset");
+  function openResetConfirm() {
+    if (confirmDlg.open) return;
+    try { confirmDlg.showModal(); } catch (_) { confirmDlg.setAttribute("open", ""); }
+    document.getElementById("confirm-cancel").focus();
+  }
+  const closeResetConfirm = () => { if (confirmDlg.open) confirmDlg.close(); };
+  function resetAll() {
+    state.pos = allPresets();
+    state.libero = true; state.zones = true; state.arrows = false;
+    optLib.checked = true; optZones.checked = true; optArrows.checked = false;
+    state.k = 0; state.phase = "recv"; state.inPlay = false; state.sel = null; state.hov = null;
+    history.length = 0; future.length = 0; updateHistoryButtons();
+    save(); animate();
+    toast("Zresetowano wszystkie ustawienia");
+  }
+  document.getElementById("reset-all").onclick = openResetConfirm;
+  document.getElementById("confirm-cancel").onclick = closeResetConfirm;
+  document.getElementById("confirm-ok").onclick = () => { closeResetConfirm(); resetAll(); };
+  document.getElementById("confirm-save").onclick = () => exportFile();
+  confirmDlg.addEventListener("click", (e) => { if (e.target === confirmDlg) closeResetConfirm(); });
   optLib.checked = state.libero; optZones.checked = state.zones; optArrows.checked = state.arrows;
   optLib.onchange = () => { state.libero = optLib.checked; save(); render(); };
   optZones.onchange = () => { state.zones = optZones.checked; save(); renderCourt(); };
@@ -1279,6 +1337,7 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       if (e.key === "Escape" || e.key === "?" || e.code === "KeyH") { e.preventDefault(); closeHelp(); }
       return;
     }
+    if (confirmDlg.open) return;                       // w oknie potwierdzenia działają tylko Tab, Enter i Esc
     if (isTyping(e.target) || e.isComposing) return;
     const mod = e.ctrlKey || e.metaKey;
 
@@ -1321,6 +1380,7 @@ button:focus-visible, svg:focus-visible, input:focus-visible, summary:focus-visi
       KeyW: applyPreset,
       KeyS: applyBase,
       KeyP: exportPdf,
+      KeyR: openResetConfirm,
       KeyL: () => toggleOption(optLib, "Libero"),
       KeyN: () => toggleOption(optZones, "Numery stref"),
       KeyD: () => toggleOption(optArrows, "Drogi do pozycji w grze"),
