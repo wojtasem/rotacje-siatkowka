@@ -358,7 +358,7 @@ html { touch-action: pan-x pan-y; }
     </div>
 
     <section class="set-sec">
-      <p class="set-note">Wybierz, co ma być widoczne na ekranie głównym. Boisko z werdyktem u góry jest widoczne zawsze. „Widok minimalny” zostawia tylko boisko oraz przyciski „Wzorcowe ustawienie”, „Ustaw w strefach” i „Resetuj wszystkie ustawienia”.</p>
+      <p class="set-note">Wybierz, co ma być widoczne na ekranie głównym. Boisko z werdyktem u góry jest widoczne zawsze. „Widok minimalny” zostawia tylko boisko oraz przyciski „Wzorcowe ustawienie”, „Ustaw w strefach” i „Resetuj wszystkie ustawienia”, a na komputerze także werdykt i kartę zaznaczonego zawodnika.</p>
       <div class="set-presets">
         <button type="button" class="btn" id="view-slim">Widok domyślny</button>
         <button type="button" class="btn" id="view-min">Widok minimalny</button>
@@ -555,7 +555,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.29";
+  const APP_VERSION = "1.30";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -612,7 +612,7 @@ html { touch-action: pan-x pan-y; }
     { key: "play",    slim: true,  label: "„Zagraj piłkę”", desc: "spacja działa zawsze" },
     { key: "reset",   slim: true,  min: true,  label: "„Resetuj wszystkie ustawienia” obok „Zagraj piłkę”", desc: "klawisz R działa zawsze" },
     { key: "filebar", slim: true,  label: "„Zapisz do pliku”, „Wczytaj z pliku” i „Zapisz PDF”", desc: "skróty Ctrl+S, Ctrl+O i P działają zawsze" },
-    { key: "player",  slim: true,  label: "Werdykt i karta zaznaczonego zawodnika", desc: "werdykt na boisku jest widoczny zawsze" },
+    { key: "player",  slim: true,  minDesktop: true, label: "Werdykt i karta zaznaczonego zawodnika", desc: "werdykt na boisku jest widoczny zawsze" },
     { key: "rels",    slim: true,  label: "Lista „Zależności w tym ustawieniu”" },
     { key: "hint",    slim: false, label: "Podpowiedź nad listą zależności" },
     { key: "legend",  slim: true,  label: "Legenda kolorów zawodników pod boiskiem" },
@@ -632,7 +632,10 @@ html { touch-action: pan-x pan-y; }
     { title: "Dodatkowe karty", view: ["rules"] }
   ];
   // warianty widoku: "default" (domyślny), "min" (minimalny), "all" (wszystko)
-  const viewPreset = (mode) => Object.fromEntries(VIEW_ITEMS.map((v) => [v.key, mode === "all" ? true : mode === "min" ? !!v.min : v.slim]));
+  // na komputerze widok minimalny zostawia też werdykt i kartę zawodnika obok boiska (minDesktop)
+  const isDesktop = () => window.matchMedia("(min-width: 980px)").matches;
+  const viewPreset = (mode) => Object.fromEntries(VIEW_ITEMS.map((v) => [v.key,
+    mode === "all" ? true : mode === "min" ? !!v.min || (!!v.minDesktop && isDesktop()) : v.slim]));
   const DEFAULT_FILE_BASE = "rotacje-ustawienia";
 
   const state = {

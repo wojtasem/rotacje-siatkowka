@@ -42,7 +42,8 @@ Gotowe warianty widoku:
 
 - **Widok domyślny** – większość elementów widoczna, numery stref włączone, drogi do pozycji wyłączone.
 - **Widok minimalny** – tylko boisko z werdyktem oraz „Wzorcowe ustawienie”, „Ustaw w strefach”
-  i „Resetuj wszystkie ustawienia”; bez numerów stref i dróg do pozycji.
+  i „Resetuj wszystkie ustawienia”, a na komputerze (ekran od 980 px) także werdykt i karta
+  zaznaczonego zawodnika obok boiska; bez numerów stref i dróg do pozycji.
 - **Pokaż wszystko** – wszystkie elementy, numery stref i drogi do pozycji.
 
 Libero zostaje bez zmian we wszystkich wariantach. Boisko z werdyktem u góry jest widoczne zawsze,
