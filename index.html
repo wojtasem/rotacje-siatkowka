@@ -583,7 +583,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.36";
+  const APP_VERSION = "1.37";
   const APP_DATE = "18.10.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -628,9 +628,9 @@ html { touch-action: pan-x pan-y; }
     { 4: [1.5, 1.4], 3: [3.5, 1.2], 2: [7.0, 6.0], 1: [8.4, 6.6], 6: [4.5, 6.6], 5: [1.8, 6.4] }, // R w 1
     { 4: [1.5, 5.8], 3: [6.0, 1.0], 2: [8.0, 1.0], 1: [6.8, 6.4], 6: [5.6, 3.0], 5: [4.2, 6.8] }, // R w 6
     { 4: [1.0, 1.0], 3: [2.2, 5.8], 2: [8.0, 1.2], 1: [7.4, 6.4], 6: [4.8, 6.6], 5: [1.2, 2.8] }, // R w 5
-    { 4: [1.5, 0.8], 3: [3.5, 1.0], 2: [7.0, 5.8], 1: [8.4, 6.8], 6: [4.5, 6.6], 5: [2.0, 6.4] }, // R w 4
+    { 4: [0.5, 0.7], 3: [1.0, 1.0], 2: [1.4, 6.0], 1: [8.3, 7.6], 6: [6.6, 6.6], 5: [3.8, 6.8] }, // R w 4: P2 przyjmuje z lewej
     { 4: [1.8, 5.8], 3: [5.5, 0.8], 2: [7.8, 1.0], 1: [7.2, 6.4], 6: [5.6, 7.8], 5: [4.0, 6.6] }, // R w 3
-    { 4: [1.0, 1.0], 3: [2.2, 5.8], 2: [8.0, 0.8], 1: [7.4, 6.4], 6: [4.8, 6.6], 5: [1.6, 2.6] }  // R w 2
+    { 4: [1.0, 1.0], 3: [2.4, 5.8], 2: [8.0, 0.8], 1: [7.6, 6.4], 6: [5.2, 6.6], 5: [5.0, 8.3] }  // R w 2: A za linią przyjęcia
   ];
   const SERVE = { 4: [1.5, 1.8], 3: [4.5, 1.8], 2: [7.5, 1.8], 5: [1.5, 6.2], 6: [4.5, 6.6], 1: SERVE_SPOT };
 
@@ -693,6 +693,15 @@ html { touch-action: pan-x pan-y; }
       if (s.phase === "recv" || s.phase === "serve") state.phase = s.phase;
       state.libero = s.libero !== false; state.zones = s.zones !== false; state.arrows = !!s.arrows;
     }
+    // 1.37: nowe wzorcowe przyjęcie w ustawieniach 4 i 2 – podmieniamy tylko niezmienione stare wzorce
+    const OLD_RECV = {
+      3: { 4: [1.5, 0.8], 3: [3.5, 1.0], 2: [7.0, 5.8], 1: [8.4, 6.8], 6: [4.5, 6.6], 5: [2.0, 6.4] },
+      5: { 4: [1.0, 1.0], 3: [2.2, 5.8], 2: [8.0, 0.8], 1: [7.4, 6.4], 6: [4.8, 6.6], 5: [1.6, 2.6] }
+    };
+    if (s && s.pos && !(s.presetV >= 2)) for (const k of [3, 5]) {
+      const cur = state.pos.recv[k], old = OLD_RECV[k];
+      if ([1, 2, 3, 4, 5, 6].every((z) => Math.abs(cur[z].x - old[z][0]) < 1e-6 && Math.abs(cur[z].y - old[z][1]) < 1e-6)) state.pos.recv[k] = preset("recv", k);
+    }
     if (s && s.view && typeof s.view === "object") for (const v of VIEW_ITEMS) if (typeof s.view[v.key] === "boolean") state.view[v.key] = s.view[v.key];
     if (s && typeof s.fileBase === "string") state.fileBase = s.fileBase;
     if (s && typeof s.fileDate === "boolean") state.fileDate = s.fileDate;
@@ -710,12 +719,13 @@ html { touch-action: pan-x pan-y; }
     if (s && s.view && !(s.viewV >= 5) && !state.zones && !state.arrows &&
         [true, false].some((d) => { const mv = viewPreset("min", d); return VIEW_ITEMS.every((v) => !!state.view[v.key] === mv[v.key]); }))
       state.showNames = true;
+    if (s) save();                                   // zapisujemy od razu jednorazowe poprawki (np. nowe wzorce), żeby się nie powtarzały
   } catch (_) {}
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify({
         pos: state.pos, k: state.k, phase: state.phase, libero: state.libero, zones: state.zones, arrows: state.arrows,
-        view: state.view, viewV: 5, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime,
+        view: state.view, viewV: 5, presetV: 2, fileBase: state.fileBase, fileDate: state.fileDate, fileTime: state.fileTime,
         names: state.names, showNames: state.showNames
       }));
     } catch (_) {}
