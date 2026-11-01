@@ -1,0 +1,9 @@
+# klucze podpisu i pliki budowania aplikacji na Androida – nigdy do repozytorium
+*.keystore
+*.jks
+*.apk
+*.aab
+*.idsig
+android/.gradle/
+android/**/build/
+android/local.properties
