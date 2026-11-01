@@ -326,6 +326,20 @@ html { touch-action: pan-x pan-y; }
 .help-grid dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; font-size: 14px; }
 .help-grid dt { white-space: nowrap; }
 .help-grid dd { margin: 0; }
+.install-bar {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 20;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  width: min(560px, calc(100% - 24px));
+  display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px 12px; align-items: center;
+  padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); box-shadow: 0 12px 36px rgba(0,0,0,.25);
+}
+.install-bar img { width: 48px; height: 48px; border-radius: 12px; }
+.install-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.install-text b { font-family: var(--f-display); font-size: 18px; line-height: 1.15; }
+.install-text span { font-size: 13.5px; color: var(--muted); }
+.install-actions { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; }
+@media (min-width: 640px) { .install-bar { grid-template-columns: 48px minmax(0, 1fr) auto; } .install-actions { grid-column: auto; } }
 .toast {
   position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
   padding: 9px 16px; border-radius: 999px; background: var(--ink); color: var(--bg);
@@ -482,6 +496,17 @@ html { touch-action: pan-x pan-y; }
     </div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="install-bar" id="install-bar" role="dialog" aria-labelledby="install-title" hidden>
+    <img src="icons/icon-maskable-192.png?v=7" alt="" width="48" height="48">
+    <div class="install-text">
+      <b id="install-title">Zainstaluj Rotacje w siatkówce</b>
+      <span id="install-desc">Szybki dostęp z ekranu głównego, na pełnym ekranie i bez internetu.</span>
+    </div>
+    <div class="install-actions">
+      <button type="button" class="btn" id="install-later">Nie teraz</button>
+      <button type="button" class="btn primary" id="install-ok">Zainstaluj</button>
+    </div>
+  </div>
 
   <main class="app">
     <section class="board" aria-label="Boisko">
@@ -583,7 +608,7 @@ html { touch-action: pan-x pan-y; }
 <script>
 (function () {
   // Wersja aplikacji: przy każdym wydaniu podbij numer i datę oraz CACHE w sw.js (rotacje-v<numer po kropce>)
-  const APP_VERSION = "1.39";
+  const APP_VERSION = "1.40";
   const APP_DATE = "01.11.2026";
   document.getElementById("app-version").textContent = `Wersja ${APP_VERSION} · ${APP_DATE}`;
 
@@ -1789,6 +1814,50 @@ html { touch-action: pan-x pan-y; }
 
   applyView();
   renderPanel();
+
+  /* ---------- zaproszenie do instalacji aplikacji ---------- */
+  const installBar = document.getElementById("install-bar");
+  const INSTALL_KEY = "rotacje-install-dismissed";
+  const INSTALL_PAUSE = 14 * 24 * 3600 * 1000;              // po „Nie teraz” wracamy po 14 dniach
+  const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  const dismissedRecently = () => { try { return Date.now() - Number(localStorage.getItem(INSTALL_KEY) || 0) < INSTALL_PAUSE; } catch (_) { return false; } };
+  let installEvent = null, installMode = null;
+  function showInstall(mode) {
+    if (isStandalone() || dismissedRecently()) return;
+    installMode = mode;
+    const ios = mode === "ios";
+    document.getElementById("install-title").textContent = ios ? "Dodaj Rotacje do ekranu początkowego" : "Zainstaluj Rotacje w siatkówce";
+    document.getElementById("install-desc").textContent = ios
+      ? "W Safari stuknij Udostępnij (kwadrat ze strzałką) i wybierz „Do ekranu początkowego”."
+      : "Szybki dostęp z ekranu głównego, na pełnym ekranie i bez internetu.";
+    document.getElementById("install-ok").textContent = ios ? "Rozumiem" : "Zainstaluj";
+    installBar.hidden = false;
+  }
+  function hideInstall(remember) {
+    installBar.hidden = true;
+    if (remember) { try { localStorage.setItem(INSTALL_KEY, String(Date.now())); } catch (_) {} }
+  }
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();                                     // zamiast małego paska przeglądarki pokazujemy własny baner
+    installEvent = e;
+    setTimeout(() => showInstall("native"), 2500);
+  });
+  document.getElementById("install-ok").onclick = async () => {
+    if (installMode === "native" && installEvent) {
+      installBar.hidden = true;
+      installEvent.prompt();
+      try {
+        const choice = await installEvent.userChoice;
+        if (choice && choice.outcome === "dismissed") hideInstall(true);
+      } catch (_) {}
+      installEvent = null;
+    } else hideInstall(true);
+  };
+  document.getElementById("install-later").onclick = () => hideInstall(true);
+  window.addEventListener("appinstalled", () => { hideInstall(false); toast("Zainstalowano aplikację"); });
+  // iPhone/iPad (Safari): przeglądarka nie oferuje instalacji, więc pokazujemy instrukcję
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (isIOS && !isStandalone()) setTimeout(() => showInstall("ios"), 3000);
 
   // działanie offline (tylko gdy strona jest serwowana przez https)
   if ("serviceWorker" in navigator && location.protocol === "https:") {

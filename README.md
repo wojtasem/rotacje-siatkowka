@@ -128,6 +128,8 @@ Aplikacja działa pod adresem https://wojtasem.github.io/rotacje-siatkowka/
 Na telefonie otwórz ten link i dodaj go do ekranu głównego (Android: menu Chrome →
 „Dodaj do ekranu głównego”, iPhone: Safari → Udostępnij → „Do ekranu początkowego”).
 Aplikacja dostanie własną ikonę i po pierwszym otwarciu działa także bez internetu.
+Przy pierwszych wizytach na dole ekranu pojawia się zaproszenie „Zainstaluj Rotacje w siatkówce”
+(na iPhonie z instrukcją). Po „Nie teraz” nie wraca przez 14 dni, a po instalacji nie pokazuje się wcale.
 
 Lokalnie wystarczy otworzyć `index.html` w przeglądarce (tryb offline działa tylko przez https).
 
